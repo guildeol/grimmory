@@ -1,23 +1,11 @@
 package org.booklore.config.security.service;
 
 import jakarta.annotation.PostConstruct;
+
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.context.annotation.Lazy;
-import org.booklore.config.AppProperties;
-import org.booklore.config.security.JwtUtils;
-import org.booklore.config.security.userdetails.OpdsUserDetails;
-import org.booklore.exception.ApiError;
-import org.booklore.model.dto.BookLoreUser;
-import org.booklore.model.dto.request.UserLoginRequest;
-import org.booklore.model.entity.BookLoreUserEntity;
-import org.booklore.model.entity.RefreshTokenEntity;
-import org.booklore.model.enums.ProvisioningMethod;
-import org.booklore.model.enums.UserPermission;
-import org.booklore.repository.RefreshTokenRepository;
-import org.booklore.repository.UserRepository;
-import org.booklore.service.appsettings.AppSettingService;
-import org.booklore.service.user.DefaultSettingInitializer;
-import org.booklore.service.user.UserProvisioningService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,8 +16,26 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import org.booklore.config.AppProperties;
+import org.booklore.config.security.JwtUtils;
+import org.booklore.config.security.userdetails.KoreaderUserDetails;
+import org.booklore.config.security.userdetails.OpdsUserDetails;
+import org.booklore.exception.ApiError;
+import org.booklore.mapper.custom.BookLoreUserTransformer;
+import org.booklore.model.dto.BookLoreUser;
+import org.booklore.model.dto.request.UserLoginRequest;
+import org.booklore.model.entity.BookLoreUserEntity;
+import org.booklore.model.entity.RefreshTokenEntity;
 import org.booklore.model.enums.AuditAction;
+import org.booklore.model.enums.ProvisioningMethod;
+import org.booklore.model.enums.UserPermission;
+import org.booklore.repository.RefreshTokenRepository;
+import org.booklore.repository.UserRepository;
+import org.booklore.service.appsettings.AppSettingService;
 import org.booklore.service.audit.AuditService;
+import org.booklore.service.user.DefaultSettingInitializer;
+import org.booklore.service.user.UserProvisioningService;
 import org.booklore.util.RequestUtils;
 
 @Slf4j
@@ -48,6 +54,7 @@ public class AuthenticationService {
     private final AuditService auditService;
     private final AuthRateLimitService authRateLimitService;
     private final AppSettingService appSettingService;
+    private final BookLoreUserTransformer bookLoreUserTransformer;
 
     public AuthenticationService(
             AppProperties appProperties,
@@ -90,7 +97,21 @@ public class AuthenticationService {
             }
             return user;
         }
-        throw new IllegalStateException("Authenticated principal is not of type BookLoreUser");
+        // Handle KoreaderUserDetails principal
+        if (principal instanceof KoreaderUserDetails koreaderDetails) {
+            Long bookLoreUserId = koreaderDetails.getBookLoreUserId();
+            if (bookLoreUserId == null) {
+                throw new IllegalStateException("KOReader user is not linked to a BookLore user");
+            }
+            BookLoreUserEntity userEntity = userRepository.findById(bookLoreUserId)
+                    .orElseThrow(() -> new IllegalStateException("BookLore user not found for KOReader user"));
+            BookLoreUser user = bookLoreUserTransformer.toDTO(userEntity);
+            if (user.getId() != null && user.getId() != -1L) {
+                defaultSettingInitializer.ensureDefaultSettings(user);
+            }
+            return user;
+        }
+        throw new IllegalStateException("Authenticated principal is not of type BookLoreUser or KoreaderUserDetails");
     }
 
     public BookLoreUser getSystemUser() {
