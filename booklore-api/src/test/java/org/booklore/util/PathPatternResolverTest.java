@@ -921,7 +921,7 @@ class PathPatternResolverTest {
     void testElseClause_fallbackWithPlaceholders() {
         BookMetadata metadata = BookMetadata.builder()
                 .title("Book Title")
-                .authors(List.of("John Doe"))
+                .authors(Set.of("John Doe"))
                 .build();
 
         String result = PathPatternResolver.resolvePattern(metadata, "<{series}/{seriesIndex} - {title}|{title}>", "original.pdf");
@@ -958,7 +958,7 @@ class PathPatternResolverTest {
     void testElseClause_mixedBlocks() {
         BookMetadata metadata = BookMetadata.builder()
                 .title("Book Title")
-                .authors(List.of("Author"))
+                .authors(Set.of("Author"))
                 .build();
 
         String result = PathPatternResolver.resolvePattern(metadata, "<{series}|Standalone>/<{year} - >{title}", "original.pdf");
@@ -973,7 +973,7 @@ class PathPatternResolverTest {
     void testModifier_firstMultipleAuthors() {
         BookMetadata metadata = BookMetadata.builder()
                 .title("Book Title")
-                .authors(new ArrayList<>(List.of("Patrick Rothfuss", "Brandon Sanderson")))
+                .authors(new LinkedHashSet<>(List.of("Patrick Rothfuss", "Brandon Sanderson")))
                 .build();
 
         String result = PathPatternResolver.resolvePattern(metadata, "{authors:first}/{title}", "original.pdf");
@@ -986,7 +986,7 @@ class PathPatternResolverTest {
     void testModifier_firstSingleAuthor() {
         BookMetadata metadata = BookMetadata.builder()
                 .title("Book Title")
-                .authors(List.of("Patrick Rothfuss"))
+                .authors(Set.of("Patrick Rothfuss"))
                 .build();
 
         String result = PathPatternResolver.resolvePattern(metadata, "{authors:first}/{title}", "original.pdf");
@@ -999,7 +999,7 @@ class PathPatternResolverTest {
     void testModifier_sort() {
         BookMetadata metadata = BookMetadata.builder()
                 .title("Book Title")
-                .authors(List.of("Patrick Rothfuss"))
+                .authors(Set.of("Patrick Rothfuss"))
                 .build();
 
         String result = PathPatternResolver.resolvePattern(metadata, "{authors:sort}/{title}", "original.pdf");
@@ -1012,7 +1012,7 @@ class PathPatternResolverTest {
     void testModifier_sortSingleWord() {
         BookMetadata metadata = BookMetadata.builder()
                 .title("Book Title")
-                .authors(List.of("Plato"))
+                .authors(Set.of("Plato"))
                 .build();
 
         String result = PathPatternResolver.resolvePattern(metadata, "{authors:sort}/{title}", "original.pdf");
@@ -1037,7 +1037,7 @@ class PathPatternResolverTest {
     void testModifier_initialAuthors() {
         BookMetadata metadata = BookMetadata.builder()
                 .title("Book Title")
-                .authors(List.of("Patrick Rothfuss"))
+                .authors(Set.of("Patrick Rothfuss"))
                 .build();
 
         String result = PathPatternResolver.resolvePattern(metadata, "{authors:initial}/{authors:sort}/{title}", "original.pdf");
@@ -1086,7 +1086,7 @@ class PathPatternResolverTest {
     void testModifier_insideElseClause() {
         BookMetadata metadata = BookMetadata.builder()
                 .title("Book Title")
-                .authors(List.of("Patrick Rothfuss"))
+                .authors(Set.of("Patrick Rothfuss"))
                 .build();
 
         String result = PathPatternResolver.resolvePattern(metadata, "<{series}|{authors:sort}>/{title}", "original.pdf");
@@ -1099,7 +1099,7 @@ class PathPatternResolverTest {
     void testModifier_inOptionalBlock() {
         BookMetadata metadata = BookMetadata.builder()
                 .title("Book Title")
-                .authors(List.of("Patrick Rothfuss"))
+                .authors(Set.of("Patrick Rothfuss"))
                 .build();
 
         String result = PathPatternResolver.resolvePattern(metadata, "<{authors:sort}/>{title}", "original.pdf");
@@ -1114,7 +1114,7 @@ class PathPatternResolverTest {
     void testModifier_sortThreeWordName() {
         BookMetadata metadata = BookMetadata.builder()
                 .title("Book Title")
-                .authors(List.of("Mary Jane Watson"))
+                .authors(Set.of("Mary Jane Watson"))
                 .build();
 
         String result = PathPatternResolver.resolvePattern(metadata, "{authors:sort}/{title}", "original.pdf");
@@ -1127,7 +1127,7 @@ class PathPatternResolverTest {
     void testModifier_initialSingleWordAuthor() {
         BookMetadata metadata = BookMetadata.builder()
                 .title("Book Title")
-                .authors(List.of("Plato"))
+                .authors(Set.of("Plato"))
                 .build();
 
         String result = PathPatternResolver.resolvePattern(metadata, "{authors:initial}/{title}", "original.pdf");
@@ -1167,7 +1167,7 @@ class PathPatternResolverTest {
     void testElseClause_multipleBlocks() {
         BookMetadata metadata = BookMetadata.builder()
                 .title("Book Title")
-                .authors(List.of("Author"))
+                .authors(Set.of("Author"))
                 .build();
 
         String result = PathPatternResolver.resolvePattern(metadata,
@@ -1209,7 +1209,7 @@ class PathPatternResolverTest {
     void testModifier_inPrimarySideOfElseClause() {
         BookMetadata metadata = BookMetadata.builder()
                 .title("Book Title")
-                .authors(List.of("Patrick Rothfuss"))
+                .authors(Set.of("Patrick Rothfuss"))
                 .seriesName("My Series")
                 .build();
 
@@ -1224,7 +1224,7 @@ class PathPatternResolverTest {
     void testModifier_chainedDifferentFields() {
         BookMetadata metadata = BookMetadata.builder()
                 .title("Book Title")
-                .authors(List.of("Patrick Rothfuss"))
+                .authors(Set.of("Patrick Rothfuss"))
                 .build();
 
         String result = PathPatternResolver.resolvePattern(metadata,
@@ -1251,7 +1251,7 @@ class PathPatternResolverTest {
     void testModifier_firstWithManyAuthors() {
         BookMetadata metadata = BookMetadata.builder()
                 .title("Book Title")
-                .authors(new ArrayList<>(List.of("Alice", "Bob", "Carol", "Dave")))
+                .authors(new LinkedHashSet<>(List.of("Alice", "Bob", "Carol", "Dave")))
                 .build();
 
         String result = PathPatternResolver.resolvePattern(metadata, "{authors:first}/{title}", "original.pdf");
@@ -1264,7 +1264,7 @@ class PathPatternResolverTest {
     void testModifier_withElseClauseAndExtension() {
         BookMetadata metadata = BookMetadata.builder()
                 .title("My Book")
-                .authors(List.of("Jane Doe"))
+                .authors(Set.of("Jane Doe"))
                 .build();
 
         String result = PathPatternResolver.resolvePattern(metadata,
@@ -1305,7 +1305,7 @@ class PathPatternResolverTest {
     void testElseClause_existingPatternsUnchanged() {
         BookMetadata metadata = BookMetadata.builder()
                 .title("Book Title")
-                .authors(List.of("Author"))
+                .authors(Set.of("Author"))
                 .seriesName("Series")
                 .seriesNumber(1f)
                 .publishedDate(LocalDate.of(2023, 1, 1))
