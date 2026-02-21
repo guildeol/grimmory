@@ -1,3 +1,11 @@
+## [1.21.5](https://gitlab.worldteacher.dev/WorldTeacher/wt-booklore/compare/1.21.4...1.21.5) (2026-02-21)
+
+
+### Bug Fixes
+
+* **bookruleevaluator:** enhance book rule evaluation with file type handling and predicates ([7cb5b65](https://gitlab.worldteacher.dev/WorldTeacher/wt-booklore/commit/7cb5b652354991267b839ac6bcda1b9631c50f6c))
+* **magic-shelf:** close on successful creation ([6de6f68](https://gitlab.worldteacher.dev/WorldTeacher/wt-booklore/commit/6de6f68f33d559269a9a5d7f77029d95606f390f))
+
 ## [1.21.4](https://gitlab.worldteacher.dev/WorldTeacher/wt-booklore/compare/1.21.3...1.21.4) (2026-02-21)
 
 
