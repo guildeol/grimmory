@@ -165,4 +165,11 @@ export class UserStatsService {
       {params: {year: year.toString()}}
     );
   }
+
+  getSessionScatter(year: number): Observable<SessionScatterResponse[]> {
+    return this.http.get<SessionScatterResponse[]>(
+      `${this.readingSessionsUrl}/session-scatter`,
+      {params: {year: year.toString()}}
+    );
+  }
 }
