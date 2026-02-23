@@ -1,3 +1,21 @@
+# [2.0.0](https://gitlab.worldteacher.dev/WorldTeacher/wt-booklore/compare/1.21.7...2.0.0) (2026-02-23)
+
+
+* feat!: Rebrand to WT-BookLore with enhanced features ([2cf4312](https://gitlab.worldteacher.dev/WorldTeacher/wt-booklore/commit/2cf431273cf6d27960a9f170bd36d8a03153dee5))
+
+
+### BREAKING CHANGES
+
+* Repository rebranded from BookLore to WT-BookLore
+
+This fork introduces several UX enhancements and new features:
+- Native BookLore session synchronization with KOReader plugin support
+- Enhanced dashboard with additional scrollers and widgets
+- OPDS Magic Shelf sort support for organized mobile reading
+- Library-scoped OPDS feeds with authors, series, and recently added views
+
+See README for complete feature list and upstream attribution.
+
 ## [1.21.7](https://gitlab.worldteacher.dev/WorldTeacher/wt-booklore/compare/1.21.6...1.21.7) (2026-02-22)
 
 
