@@ -1,3 +1,10 @@
+## [2.0.2](https://gitlab.worldteacher.dev/WorldTeacher/wt-booklore/compare/2.0.1...2.0.2) (2026-02-24)
+
+
+### Bug Fixes
+
+* **docker:** update dockerfile ([6ca473b](https://gitlab.worldteacher.dev/WorldTeacher/wt-booklore/commit/6ca473b5efccbb2cd34e37f0f94ef053b2f36932))
+
 ## [2.0.1](https://gitlab.worldteacher.dev/WorldTeacher/wt-booklore/compare/2.0.0...2.0.1) (2026-02-24)
 
 
