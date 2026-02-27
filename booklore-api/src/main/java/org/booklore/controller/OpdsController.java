@@ -123,11 +123,23 @@ public class OpdsController {
                 .body(feed);
     }
 
-    @Operation(summary = "Get OPDS series navigation", description = "Retrieve the OPDS series navigation feed.")
+    @Operation(summary = "Get OPDS series navigation", description = "Retrieve the OPDS series navigation feed grouped by first letter.")
     @ApiResponse(responseCode = "200", description = "Series navigation feed returned successfully")
     @GetMapping(value = "/series", produces = OPDS_CATALOG_MEDIA_TYPE)
     public ResponseEntity<String> getSeriesNavigation(@Parameter(hidden = true) HttpServletRequest request) {
         String feed = opdsFeedService.generateSeriesNavigation(request);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(OPDS_CATALOG_MEDIA_TYPE))
+                .body(feed);
+    }
+
+    @Operation(summary = "Get OPDS series by letter", description = "Retrieve series whose sort title starts with the given letter.")
+    @ApiResponse(responseCode = "200", description = "Series letter feed returned successfully")
+    @GetMapping(value = "/series/{letter}", produces = OPDS_CATALOG_MEDIA_TYPE)
+    public ResponseEntity<String> getSeriesByLetterNavigation(
+            @Parameter(description = "Letter bucket (A-Z or # for non-alpha)") @PathVariable String letter,
+            @Parameter(hidden = true) HttpServletRequest request) {
+        String feed = opdsFeedService.generateSeriesByLetterNavigation(letter, request);
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(OPDS_CATALOG_MEDIA_TYPE))
                 .body(feed);
@@ -157,7 +169,7 @@ public class OpdsController {
                 .body(feed);
     }
 
-    @Operation(summary = "Get library series navigation", description = "Retrieve the OPDS series navigation feed for a specific library.")
+    @Operation(summary = "Get library series navigation", description = "Retrieve the OPDS series navigation feed for a specific library, grouped by first letter.")
     @ApiResponse(responseCode = "200", description = "Library series navigation feed returned successfully")
     @GetMapping(value = "/libraries/{libraryId}/series", produces = OPDS_CATALOG_MEDIA_TYPE)
     public ResponseEntity<String> getLibrarySeriesNavigation(

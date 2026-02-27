@@ -294,7 +294,32 @@ public class OpdsFeedService {
                   <link rel="search" type="application/opensearchdescription+xml" title="Search" href="/api/v1/opds/search.opds"/>
                 """.formatted(now()));
 
-        for (String series : seriesList) {
+        appendSeriesLetterBuckets(feed, seriesList, "/api/v1/opds/series");
+
+        feed.append("</feed>");
+        return feed.toString();
+    }
+
+    public String generateSeriesByLetterNavigation(String letter, HttpServletRequest request) {
+        Long userId = getUserId();
+        List<String> seriesList = opdsBookService.getDistinctSeries(userId);
+        List<String> filtered = filterSeriesByLetter(seriesList, letter);
+
+        String displayLetter = letter.equals("#") ? "#" : letter.toUpperCase();
+
+        var feed = new StringBuilder("""
+                <?xml version="1.0" encoding="UTF-8"?>
+                <feed xmlns="http://www.w3.org/2005/Atom" xmlns:opds="http://opds-spec.org/2010/catalog">
+                  <id>urn:booklore:navigation:series:letter:%s</id>
+                  <title>Series — %s</title>
+                  <updated>%s</updated>
+                  <link rel="self" href="/api/v1/opds/series/%s" type="application/atom+xml;profile=opds-catalog;kind=navigation"/>
+                  <link rel="up" href="/api/v1/opds/series" type="application/atom+xml;profile=opds-catalog;kind=navigation"/>
+                  <link rel="start" href="/api/v1/opds" type="application/atom+xml;profile=opds-catalog;kind=navigation"/>
+                  <link rel="search" type="application/opensearchdescription+xml" title="Search" href="/api/v1/opds/search.opds"/>
+                """.formatted(escapeXml(letter), escapeXml(displayLetter), now(), escapeXml(letter)));
+
+        for (String series : filtered) {
             feed.append("""
                       <entry>
                         <title>%s</title>
@@ -920,6 +945,80 @@ public class OpdsFeedService {
 
         feed.append("</feed>");
         return feed.toString();
+    }
+
+    /**
+     * Strips leading articles (A, An, The) from a series name to get its sort key,
+     * then returns the first character uppercased, or "#" for non-letter characters.
+     */
+    private String getSeriesSortLetter(String series) {
+        if (series == null || series.isBlank()) return "#";
+        String stripped = series.trim();
+        // Strip leading articles case-insensitively
+        stripped = stripped.replaceFirst("(?i)^(the|an|a)\\s+", "");
+        if (stripped.isEmpty()) stripped = series.trim();
+        char first = Character.toUpperCase(stripped.charAt(0));
+        return Character.isLetter(first) ? String.valueOf(first) : "#";
+    }
+
+    /**
+     * Builds a sorted list of letter buckets that have at least one series,
+     * and appends an OPDS navigation entry for each into the feed.
+     */
+    private void appendSeriesLetterBuckets(StringBuilder feed, List<String> seriesList, String basePath) {
+        java.util.TreeMap<String, Long> buckets = new java.util.TreeMap<>();
+        for (String s : seriesList) {
+            String letter = getSeriesSortLetter(s);
+            buckets.merge(letter, 1L, Long::sum);
+        }
+        // Put "#" at the end if present
+        String hashCount = null;
+        if (buckets.containsKey("#")) {
+            hashCount = String.valueOf(buckets.remove("#"));
+        }
+        for (java.util.Map.Entry<String, Long> e : buckets.entrySet()) {
+            String letter = e.getKey();
+            long count = e.getValue();
+            feed.append("""
+                      <entry>
+                        <title>%s</title>
+                        <id>urn:booklore:series:letter:%s</id>
+                        <updated>%s</updated>
+                        <link rel="subsection" href="%s" type="application/atom+xml;profile=opds-catalog;kind=navigation"/>
+                        <content type="text">%d series</content>
+                      </entry>
+                    """.formatted(
+                    escapeXml(letter),
+                    escapeXml(letter),
+                    now(),
+                    escapeXml(basePath + "/" + letter),
+                    count
+            ));
+        }
+        if (hashCount != null) {
+            feed.append("""
+                      <entry>
+                        <title>#</title>
+                        <id>urn:booklore:series:letter:#</id>
+                        <updated>%s</updated>
+                        <link rel="subsection" href="%s" type="application/atom+xml;profile=opds-catalog;kind=navigation"/>
+                        <content type="text">%s series</content>
+                      </entry>
+                    """.formatted(now(), escapeXml(basePath + "/%23"), hashCount));
+        }
+    }
+
+    /**
+     * Filters a series list to those whose sort letter matches the given letter.
+     * Pass "#" (or "%23" decoded) to get non-alpha series.
+     */
+    private List<String> filterSeriesByLetter(List<String> seriesList, String letter) {
+        String target = letter.equalsIgnoreCase("%23") ? "#" : letter.toUpperCase();
+        return seriesList.stream()
+                .filter(s -> getSeriesSortLetter(s).equals(target))
+                .sorted(java.util.Comparator.comparing(
+                        s -> s.replaceFirst("(?i)^(the|an|a)\\s+", "").toLowerCase()))
+                .toList();
     }
 
     private Long getUserId() {
