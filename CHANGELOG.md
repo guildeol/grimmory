@@ -1,3 +1,15 @@
+# [2.2.0](https://gitlab.worldteacher.dev/wt-booklore/wt-booklore/compare/2.1.0...2.2.0) (2026-03-02)
+
+
+### Bug Fixes
+
+* **i18n:** remove double key ([ae793b1](https://gitlab.worldteacher.dev/wt-booklore/wt-booklore/commit/ae793b1dd43991abd984ec01d884e6884686440a))
+
+
+### Features
+
+* **magic-shelf:** enhance magic shelf metadata fields and localization for comics ([22453b9](https://gitlab.worldteacher.dev/wt-booklore/wt-booklore/commit/22453b938e67d6f811fa2a51d0d7cfd5013443a6))
+
 # [2.1.0](https://gitlab.worldteacher.dev/WorldTeacher/wt-booklore/compare/2.0.3...2.1.0) (2026-02-25)
 
 
