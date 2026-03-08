@@ -5,8 +5,8 @@ WORKDIR /angular-app
 
 COPY ./booklore-ui/package.json ./booklore-ui/package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm \
-    npm config set registry https://registry.npmjs.org/ \
-    && npm ci --force
+  npm config set registry https://registry.npmjs.org/ \
+  && npm ci --force
 
 COPY ./booklore-ui /angular-app/
 
@@ -22,7 +22,7 @@ COPY ./booklore-api/build.gradle ./booklore-api/settings.gradle /springboot-app/
 
 # Download dependencies (cached layer)
 RUN --mount=type=cache,target=/home/gradle/.gradle \
-    gradle dependencies --no-daemon
+  gradle dependencies --no-daemon
 
 COPY ./booklore-api/src /springboot-app/src
 
@@ -38,12 +38,12 @@ COPY --from=angular-build /angular-app/dist/booklore/browser /springboot-app/src
 ARG APP_VERSION
 ENV APP_VERSION=${APP_VERSION}
 RUN echo "Building with APP_VERSION=${APP_VERSION}" && \
-    sed -i "s|version: \${APP_VERSION:development}|version: ${APP_VERSION}|g" \
-        /springboot-app/src/main/resources/application.yaml && \
-    grep "version:" /springboot-app/src/main/resources/application.yaml
+  sed -i "s|version: \${APP_VERSION:development}|version: ${APP_VERSION}|g" \
+  /springboot-app/src/main/resources/application.yaml && \
+  grep "version:" /springboot-app/src/main/resources/application.yaml
 
 RUN --mount=type=cache,target=/home/gradle/.gradle \
-    gradle clean build -x test --no-daemon --parallel
+  gradle clean build -x test --no-daemon --parallel
 
 # Stage 3: Final image
 FROM eclipse-temurin:25-jre-alpine
@@ -55,14 +55,14 @@ ENV APP_REVISION=${APP_REVISION}
 
 # Set OCI labels
 LABEL org.opencontainers.image.title="WT-BookLore" \
-      org.opencontainers.image.description="WT-BookLore: A self-hosted, multi-user digital library with smart shelves, auto metadata, Kobo & KOReader sync, BookDrop imports, OPDS support, and a built-in reader for EPUB, PDF, and comics. This fork includes native support for the KOReader Sync plugin as well as all changes done by me." \
-      org.opencontainers.image.source="https://gitlab.worldteacher.dev/WorldTeacher/wt-booklore" \
-      org.opencontainers.image.url="https://gitlab.worldteacher.dev/WorldTeacher/wt-booklore" \
-      org.opencontainers.image.documentation="https://booklore.org/docs/getting-started" \
-      org.opencontainers.image.version=$APP_VERSION \
-      org.opencontainers.image.revision=$APP_REVISION \
-      org.opencontainers.image.licenses="GPL-3.0" \
-      org.opencontainers.image.base.name="docker.io/library/eclipse-temurin:25-jre-alpine"
+  org.opencontainers.image.description="WT-BookLore: A self-hosted, multi-user digital library with smart shelves, auto metadata, Kobo & KOReader sync, BookDrop imports, OPDS support, and a built-in reader for EPUB, PDF, and comics. This fork includes native support for the KOReader Sync plugin as well as all changes done by me." \
+  org.opencontainers.image.source="https://gitlab.worldteacher.dev/WorldTeacher/wt-booklore" \
+  org.opencontainers.image.url="https://gitlab.worldteacher.dev/WorldTeacher/wt-booklore" \
+  org.opencontainers.image.documentation="https://booklore.org/docs/getting-started" \
+  org.opencontainers.image.version=$APP_VERSION \
+  org.opencontainers.image.revision=$APP_REVISION \
+  org.opencontainers.image.licenses="GPL-3.0" \
+  org.opencontainers.image.base.name="docker.io/library/eclipse-temurin:25-jre-alpine"
 
 ENV JAVA_TOOL_OPTIONS="-XX:+UseG1GC -XX:+UseCompactObjectHeaders -XX:+UseStringDeduplication -XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError"
 
