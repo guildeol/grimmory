@@ -15,8 +15,15 @@ import {Filter, FILTER_LABEL_KEYS, FilterType} from './book-filter.config';
 import {BookFilterService} from './book-filter.service';
 import {filter} from 'rxjs/operators';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
+import {InputText} from 'primeng/inputtext';
 
 type FilterModeOption = { label: string; value: BookFilterMode };
+
+// FilterTypes that benefit from a search bar (high-cardinality text fields)
+const SEARCHABLE_FILTER_TYPES = new Set<FilterType>([
+  'author', 'category', 'tag', 'mood', 'series', 'publisher',
+  'narrator', 'language', 'comicCharacter', 'comicTeam', 'comicLocation', 'comicCreator'
+]);
 
 @Component({
   selector: 'app-book-filter',
@@ -28,7 +35,7 @@ type FilterModeOption = { label: string; value: BookFilterMode };
     Accordion, AccordionPanel, AccordionHeader, AccordionContent,
     CdkVirtualScrollViewport, CdkFixedSizeVirtualScroll, CdkVirtualForOf,
     NgClass, Badge, AsyncPipe, FormsModule, SelectButton,
-    TranslocoDirective
+    TranslocoDirective, InputText
   ]
 })
 export class BookFilterComponent implements OnInit, OnDestroy {
@@ -55,6 +62,9 @@ export class BookFilterComponent implements OnInit, OnDestroy {
   expandedPanels: number[] = [0];
   truncatedFilters: Record<string, boolean> = {};
 
+  /** Per-panel search term keyed by FilterType */
+  filterSearchTerms: Record<string, string> = {};
+
   private _selectedFilterMode: BookFilterMode = 'and';
   private _visibleFilters: VisibleFilterType[] = [...DEFAULT_VISIBLE_FILTERS];
 
@@ -64,6 +74,29 @@ export class BookFilterComponent implements OnInit, OnDestroy {
     const key = this.filterLabelKeys[type];
     return key ? this.t.translate(key) : type;
   }
+
+  isSearchable(type: FilterType): boolean {
+    return SEARCHABLE_FILTER_TYPES.has(type);
+  }
+
+  /**
+   * Returns the subset of filters matching the current search term for a panel.
+   * Returns the full list when no search term is set.
+   */
+  getFilteredItems(type: FilterType, filters: Filter[]): Filter[] {
+    const term = (this.filterSearchTerms[type] ?? '').trim().toLowerCase();
+    if (!term) return filters;
+    return filters.filter(f => {
+      const display = this.getFilterValueDisplay(f).toLowerCase();
+      return display.includes(term);
+    });
+  }
+
+  clearSearch(type: FilterType, event: Event): void {
+    event.stopPropagation();
+    this.filterSearchTerms[type] = '';
+  }
+
   readonly filterModeOptions: FilterModeOption[] = [
     {label: 'AND', value: 'and'},
     {label: 'OR', value: 'or'},
@@ -113,6 +146,7 @@ export class BookFilterComponent implements OnInit, OnDestroy {
   clearActiveFilter(): void {
     this.activeFilters = {};
     this.expandedPanels = [0];
+    this.filterSearchTerms = {};
     this.activeFilters$.next(null);
     this.filterSelected.emit(null);
   }
