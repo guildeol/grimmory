@@ -3,26 +3,26 @@ extends: spectral:oas
 rules:
   # Ensure all operations have tags
   operation-tags: error
-  
+
   # Ensure operations have summaries and descriptions
   operation-summary: warn
   operation-description: warn
-  
+
   # Ensure all parameters are described
   operation-parameters: warn
-  
+
   # Ensure proper HTTP status codes
   operation-success-response: error
-  
+
   # Ensure paths use kebab-case
   path-keys-no-trailing-slash: error
-  
+
   # Ensure all schemas have descriptions
   info-contact: warn
   info-description: error
-  
+
   # Security
   operation-security-defined: warn
-  
+
   # Versioning
   oas3-api-servers: error
