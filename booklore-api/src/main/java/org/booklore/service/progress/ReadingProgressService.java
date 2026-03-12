@@ -209,34 +209,55 @@ public class ReadingProgressService {
         progress.setBook(book);
         progress.setLastReadTime(now);
 
-        Float percentage;
+        Float percentage = null;
 
-        if (request.getFileProgress() != null) {
-            BookFileProgress fileProgress = request.getFileProgress();
-            percentage = fileProgress.progressPercent();
+        boolean hasProgressData = request.getFileProgress() != null
+                || request.getEpubProgress() != null
+                || request.getPdfProgress() != null
+                || request.getCbxProgress() != null
+                || request.getAudiobookProgress() != null;
 
-            saveToUserBookFileProgress(userEntity, fileProgress, now);
+        if (hasProgressData) {
+            if (request.getFileProgress() != null) {
+                BookFileProgress fileProgress = request.getFileProgress();
+                percentage = fileProgress.progressPercent();
 
-            BookFileEntity bookFile = bookFileRepository.findById(fileProgress.bookFileId())
-                    .orElseThrow(() -> ApiError.GENERIC_NOT_FOUND.createException("Book file not found"));
-            updateProgressFromFileProgress(progress, bookFile.getBookType(), fileProgress);
-        } else {
-            BookFileEntity primaryFile = book.getPrimaryBookFile();
-            if (primaryFile == null) {
-                throw ApiError.UNSUPPORTED_BOOK_TYPE.createException();
+                saveToUserBookFileProgress(userEntity, fileProgress, now);
+
+                BookFileEntity bookFile = bookFileRepository.findById(fileProgress.bookFileId())
+                        .orElseThrow(() -> ApiError.GENERIC_NOT_FOUND.createException("Book file not found"));
+                updateProgressFromFileProgress(progress, bookFile.getBookType(), fileProgress);
+            } else {
+                BookFileEntity primaryFile = book.getPrimaryBookFile();
+                if (primaryFile == null) {
+                    throw ApiError.UNSUPPORTED_BOOK_TYPE.createException();
+                }
+                percentage = updateProgressByBookType(progress, primaryFile.getBookType(), request);
+
+                if (percentage != null) {
+                    saveToUserBookFileProgressFromLegacy(userEntity, primaryFile, progress, now);
+                }
             }
-            percentage = updateProgressByBookType(progress, primaryFile.getBookType(), request);
 
             if (percentage != null) {
-                saveToUserBookFileProgressFromLegacy(userEntity, primaryFile, progress, now);
+                progress.setReadStatus(calculateReadStatus(percentage, progress.getReadStatus()));
+                BookFileEntity primaryFile = book.getPrimaryBookFile();
+                if (primaryFile != null) {
+                    setProgressPercent(progress, primaryFile.getBookType(), percentage);
+                }
             }
         }
 
         if (percentage != null) {
-            progress.setReadStatus(calculateReadStatus(percentage, progress.getReadStatus()));
+            ReadStatus newStatus = calculateReadStatus(percentage, progress.getReadStatus());
+            progress.setReadStatus(newStatus);
             BookFileEntity primaryFile = book.getPrimaryBookFile();
             if (primaryFile != null) {
                 setProgressPercent(progress, primaryFile.getBookType(), percentage);
+            }
+            // Auto-set dateFinished when the book transitions to READ and no date is set yet
+            if (newStatus == ReadStatus.READ && progress.getDateFinished() == null) {
+                progress.setDateFinished(now);
             }
         }
         if (request.getDateFinished() != null) {

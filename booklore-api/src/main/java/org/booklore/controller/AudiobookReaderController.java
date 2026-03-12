@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -46,6 +47,7 @@ public class AudiobookReaderController {
     @ApiResponse(responseCode = "200", description = "Full audio file returned")
     @ApiResponse(responseCode = "206", description = "Partial content returned (range request)")
     @ApiResponse(responseCode = "416", description = "Range not satisfiable")
+    @CheckBookAccess(bookIdParam = "bookId")
     @GetMapping("/{bookId}/stream")
     public void streamAudiobook(
             @Parameter(description = "ID of the book") @PathVariable Long bookId,
@@ -62,6 +64,7 @@ public class AudiobookReaderController {
     @ApiResponse(responseCode = "200", description = "Full track file returned")
     @ApiResponse(responseCode = "206", description = "Partial content returned (range request)")
     @ApiResponse(responseCode = "416", description = "Range not satisfiable")
+    @CheckBookAccess(bookIdParam = "bookId")
     @GetMapping("/{bookId}/track/{trackIndex}/stream")
     public void streamTrack(
             @Parameter(description = "ID of the book") @PathVariable Long bookId,
@@ -79,6 +82,7 @@ public class AudiobookReaderController {
                     "Uses token query parameter for authentication.")
     @ApiResponse(responseCode = "200", description = "Cover art returned successfully")
     @ApiResponse(responseCode = "404", description = "No embedded cover art found")
+    @CheckBookAccess(bookIdParam = "bookId")
     @GetMapping("/{bookId}/cover")
     public ResponseEntity<byte[]> getEmbeddedCover(
             @Parameter(description = "ID of the book") @PathVariable Long bookId,
@@ -96,5 +100,51 @@ public class AudiobookReaderController {
         headers.setCacheControl("public, max-age=86400");
 
         return new ResponseEntity<>(coverData, headers, HttpStatus.OK);
+    }
+
+    @Operation(summary = "Download audiobook",
+            description = "Download the full audiobook file. Single-file audiobooks are returned directly; " +
+                    "folder-based audiobooks (multi-track) are packaged as a ZIP archive.")
+    @ApiResponse(responseCode = "200", description = "Audiobook downloaded successfully")
+    @ApiResponse(responseCode = "404", description = "Audiobook not found")
+    @CheckBookAccess(bookIdParam = "bookId")
+    @GetMapping("/{bookId}/download")
+    public ResponseEntity<Resource> downloadAudiobook(
+            @Parameter(description = "ID of the book") @PathVariable Long bookId,
+            @Parameter(description = "Optional book type for alternative format") @RequestParam(required = false) String bookType) {
+        return audiobookReaderService.downloadAudiobook(bookId, bookType);
+    }
+
+    @Operation(summary = "Download a single track",
+            description = "Download a single track from a folder-based (multi-track) audiobook by track index (0-indexed).")
+    @ApiResponse(responseCode = "200", description = "Track downloaded successfully")
+    @ApiResponse(responseCode = "400", description = "Not a folder-based audiobook")
+    @ApiResponse(responseCode = "404", description = "Track index out of range or file not found")
+    @CheckBookAccess(bookIdParam = "bookId")
+    @GetMapping("/{bookId}/track/{trackIndex}/download")
+    public ResponseEntity<Resource> downloadAudiobookTrack(
+            @Parameter(description = "ID of the book") @PathVariable Long bookId,
+            @Parameter(description = "Track index (0-indexed)") @PathVariable Integer trackIndex,
+            @Parameter(description = "Optional book type for alternative format") @RequestParam(required = false) String bookType) {
+        return audiobookReaderService.downloadAudiobookTrack(bookId, trackIndex, bookType);
+    }
+
+    @Operation(summary = "Download next N chapters",
+            description = "Download the next N chapters/tracks of an audiobook starting at a given index. " +
+                    "For folder-based (multi-track) audiobooks: returns a ZIP archive of the requested track files. " +
+                    "For single-file audiobooks with embedded chapters (e.g. M4B): returns JSON with the requested " +
+                    "chapter metadata slice and a URL to download the full audio file. " +
+                    "The range is silently truncated to available chapters/tracks if fromIndex + count exceeds the total.")
+    @ApiResponse(responseCode = "200", description = "ZIP archive (folder-based) or chapter metadata JSON (single-file)")
+    @ApiResponse(responseCode = "400", description = "Invalid parameters, fromIndex out of range, or no embedded chapters available")
+    @ApiResponse(responseCode = "404", description = "Audiobook not found")
+    @CheckBookAccess(bookIdParam = "bookId")
+    @GetMapping("/{bookId}/chapters/download")
+    public ResponseEntity<?> downloadNextChapters(
+            @Parameter(description = "ID of the book") @PathVariable Long bookId,
+            @Parameter(description = "0-based index of the first chapter/track to include") @RequestParam int fromIndex,
+            @Parameter(description = "Number of chapters/tracks to include (silently truncated if it exceeds the total)") @RequestParam int count,
+            @Parameter(description = "Optional book type for alternative format") @RequestParam(required = false) String bookType) {
+        return audiobookReaderService.downloadNextChapters(bookId, bookType, fromIndex, count);
     }
 }
