@@ -1,8 +1,8 @@
-# Frontend 90% Coverage Execution Plan
+# Frontend 90% Coverage Swarm Plan
 
 ## Summary
 
-Drive the frontend to an honest `>=90%` on statements, branches, functions, and lines for application code, and keep going until both the global total and each major frontend area clear the bar. Use this branch/workspace directly. Progress is measured with the repo command surface, especially `just ui typecheck`, `just ui lint`, `just ui test`, `just ui coverage`, and periodic `just ui check`.
+Drive the frontend to an honest `>=90%` on statements, branches, functions, and lines for application code, and keep going until both the global total and each major frontend area clear the bar. Use `chore/expand-frontend-tests` as the controller branch and execute the bulk of the work through a swarm of sub-agents in repo-local worktrees under `.worktrees/`.
 
 This file is the persistent source of truth for the run. Every later summary, checkpoint, or resume-after-compaction step should explicitly re-anchor to `docs/plans/frontend-90-coverage-plan.md`.
 
@@ -11,6 +11,7 @@ Operating rules:
 - Default: do not change runtime code to make tests possible.
 - Exception policy: if a file is truly blocked, make the smallest runtime seam change only in its own conventional commit with an explicit defense, so it can be reviewed or reverted independently.
 - Commit frequently with conventional commits after each stable coverage gain batch; do not wait for one giant final commit.
+- Do not push unless explicitly asked.
 
 ## Harness And Configuration
 
@@ -30,31 +31,62 @@ Operating rules:
   - global metrics
   - per-family metrics for `core`, `shared`, and each `features/*` bucket
   - the worst uncovered files by branch deficit
+- Keep controller ownership over plan artifacts, harness files, shared test-only helper roots, and Playwright configuration.
+
+## Swarm Topology
+
+- Controller branch: `chore/expand-frontend-tests`.
+- Worktree root: `.worktrees/` only.
+- One branch and one worktree per independent effort.
+- Controller owns:
+  - `docs/plans/frontend-90-coverage-plan.md`
+  - frontend harness files such as `vitest-base.config.ts`, `src/test-setup.ts`, and coverage-summary tooling
+  - shared test-only helper roots
+  - Playwright configuration and shared browser fixtures
+  - integration, rebases, cherry-picks, and final validation
+- Initial workers:
+  1. `test/f90-core-auth` -> `.worktrees/f90-core-auth`
+  2. `test/f90-shared` -> `.worktrees/f90-shared`
+  3. `test/f90-book` -> `.worktrees/f90-book`
+  4. `test/f90-metadata` -> `.worktrees/f90-metadata`
+  5. `test/f90-settings-stats` -> `.worktrees/f90-settings-stats`
+  6. `test/f90-readers` -> `.worktrees/f90-readers`
+  7. `test/f90-playwright` -> `.worktrees/f90-playwright`
+- Deferred worker:
+  - `test/f90-gap-closer` -> `.worktrees/f90-gap-closer` after the first integration wave
+- Worker ownership:
+  - `f90-core-auth`: `frontend/src/app/core/**`, auth/bootstrap/login/routing-adjacent specs
+  - `f90-shared`: `frontend/src/app/shared/**` excluding controller-owned helper roots and Playwright assets
+  - `f90-book`: `frontend/src/app/features/book/**`, `bookdrop/**`, `library-creator/**`
+  - `f90-metadata`: `frontend/src/app/features/metadata/**`
+  - `f90-settings-stats`: `frontend/src/app/features/settings/**`, `stats/**`
+  - `f90-readers`: `frontend/src/app/features/readers/**`
+  - `f90-playwright`: browser specs and test-only browser fixtures only
+- Every worker must stay inside its ownership boundary, must not revert edits from others, and must hand runtime-code blockers back to the controller.
 
 ## Execution Loop
 
-- Start with a clean baseline:
+- Controller prep first:
   - `just ui typecheck`
   - `just ui lint`
   - `just ui test`
   - `just ui coverage`
-- Parse the coverage JSON after each full run and rank work by branch deficit first, then statements/functions/lines.
-- Work bucket by bucket in this order:
-  1. Bootstrap, routing, auth, setup, login
-  2. Shared services and shared components/layout
-  3. Book, bookdrop, library creation
-  4. Metadata, settings, stats
-  5. Readers
-  6. Remaining helpers, dialogs, and route-entry shells
-- For each bucket:
-  - add tests
-  - run targeted tests for that bucket
+  - land the harness prep commit before creating worktrees
+- After the harness prep commit:
+  - create `.worktrees/` if missing
+  - create one worktree per initial worker branch from `chore/expand-frontend-tests`
+  - spawn sub-agents with explicit ownership, validation requirements, and commit expectations
+- Worker loop:
+  - add tests inside the owned surface
+  - run targeted tests for that surface
   - run `just ui typecheck`
   - run `just ui lint`
-  - run `just ui coverage`
-  - update this plan with a brief progress checkpoint if the bucket order or blocker status changes
-  - commit once the bucket is green and coverage materially improved
-- Every few buckets, run `just ui check` to catch cross-surface regressions early.
+  - commit one logical bucket at a time with a Conventional Commit subject and meaningful body
+- Controller integration loop:
+  - integrate worker branches in this order: harness, core/auth, shared, book/bookdrop/library-creator, metadata, settings/stats, readers, playwright, gap-closer
+  - after each integration run `just ui typecheck`, `just ui lint`, and `just ui test`
+  - every two integrations run `just ui coverage` and `just ui coverage-summary`
+  - repoint the deferred gap-closer worker at the worst remaining files by branch deficit
 - Do not stop when global coverage first crosses `90` if any major area remains materially behind; continue until the lagging areas also clear `90`.
 
 ## Test Generation Scope
@@ -90,11 +122,10 @@ Operating rules:
 ## Commit And Acceptance Rules
 
 - Commit cadence:
-  - one setup commit for harness/tooling plus plan doc creation
-  - then one conventional commit per stable coverage batch or feature bucket
+  - one controller setup commit for harness/tooling plus swarm plan update
+  - then one conventional commit per stable worker bucket or integration step
   - runtime seam exceptions, if any, get their own isolated conventional commit with explicit justification
 - Preferred commit pattern:
-  - `docs(plan): add frontend 90 coverage execution plan` for the initial plan artifact
   - `chore(testing): ...` for harness/config changes
   - `test(frontend): ...` for test additions
   - `test(auth): ...`, `test(readers): ...`, `test(metadata): ...` for focused batches
@@ -113,5 +144,6 @@ Operating rules:
 - The `90%` target means all four metrics, not statements only.
 - Coverage scope includes frontend application code and templates plus `src/main.ts`; no broad exclusions are allowed.
 - Runtime code changes are disallowed by default; if unavoidable, they must be isolated in a separately defended commit.
-- This branch is the execution surface; no separate worktree is needed.
+- `chore/expand-frontend-tests` is the controller branch and worker branches are derived from it.
+- `.worktrees/` is the only allowed worktree root.
 - Frequent conventional commits are part of the execution plan, not deferred cleanup.

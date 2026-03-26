@@ -54,3 +54,4 @@ booklore-api/src/main/resources/application-local.yaml
 /frontend/.yarn/
 /tools/release/node_modules
 /tools/release/.yarn/
+.worktrees/
