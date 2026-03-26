@@ -1,71 +1,123 @@
-import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {signal} from '@angular/core';
 import {TestBed} from '@angular/core/testing';
-import {initializeAuthFactory} from './auth-initializer';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
+import {of, throwError} from 'rxjs';
+import {QueryClient} from '@tanstack/angular-query-experimental';
+
 import {AuthInitializationService} from './auth-initialization-service';
 import {AuthService} from '../../shared/service/auth.service';
 import {AppSettingsService, PublicAppSettings} from '../../shared/service/app-settings.service';
-import {QueryClient, queryOptions} from '@tanstack/angular-query-experimental';
+import {initializeAuthFactory} from './auth-initializer';
 
 describe('initializeAuthFactory', () => {
-  let authInitService: AuthInitializationService;
-  let mockQueryClient: { fetchQuery: ReturnType<typeof vi.fn> };
+  const authInitService = {
+    markAsInitialized: vi.fn(),
+  };
 
-  const defaultPublicSettings: PublicAppSettings = {
-    oidcEnabled: false,
+  const authService = {
+    getInternalAccessToken: vi.fn<() => string | null>(),
+    remoteLogin: vi.fn(),
+    initializeWebSocketConnection: vi.fn(),
+  };
+
+  const queryClient = {
+    fetchQuery: vi.fn(),
+  };
+
+  const appSettingsService = {
+    getPublicSettingsQueryOptions: vi.fn(() => ({queryKey: ['public-settings']})),
+  };
+
+  const settingsBase: PublicAppSettings = {
+    oidcEnabled: true,
     remoteAuthEnabled: false,
     oidcProviderDetails: null!,
     oidcForceOnlyMode: false,
   };
 
   beforeEach(() => {
-    mockQueryClient = {
-      fetchQuery: vi.fn().mockResolvedValue(defaultPublicSettings),
-    };
+    vi.restoreAllMocks();
+    authInitService.markAsInitialized.mockReset();
+    authService.getInternalAccessToken.mockReset();
+    authService.remoteLogin.mockReset();
+    authService.initializeWebSocketConnection.mockReset();
+    queryClient.fetchQuery.mockReset();
+    appSettingsService.getPublicSettingsQueryOptions.mockClear();
 
+    TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
-        {provide: AuthService, useValue: {token: signal(null), getInternalAccessToken: vi.fn()}},
-        {
-          provide: AppSettingsService,
-          useValue: {
-            publicAppSettings: signal(null),
-            getPublicSettingsQueryOptions: () => queryOptions({queryKey: ['public-settings'], queryFn: async () => defaultPublicSettings}),
-          },
-        },
-        {provide: QueryClient, useValue: mockQueryClient},
-        AuthInitializationService,
+        {provide: AuthInitializationService, useValue: authInitService},
+        {provide: AuthService, useValue: authService},
+        {provide: AppSettingsService, useValue: appSettingsService},
+        {provide: QueryClient, useValue: queryClient},
       ]
     });
-
-    authInitService = TestBed.inject(AuthInitializationService);
   });
 
-  it('should proceed with auth initialization when navigator.onLine is false', async () => {
-    const markSpy = vi.spyOn(authInitService, 'markAsInitialized');
-
-    Object.defineProperty(navigator, 'onLine', {value: false, configurable: true});
-
-    const factory = TestBed.runInInjectionContext(() => initializeAuthFactory());
-    const initPromise = TestBed.runInInjectionContext(() => factory());
-
-    await initPromise;
-
-    expect(markSpy).toHaveBeenCalled();
-
-    Object.defineProperty(navigator, 'onLine', {value: true, configurable: true});
+  afterEach(() => {
+    TestBed.resetTestingModule();
   });
 
-  it('should initialize normally when navigator.onLine is true', async () => {
-    const markSpy = vi.spyOn(authInitService, 'markAsInitialized');
+  it('marks auth initialized when public settings are unavailable', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    queryClient.fetchQuery.mockResolvedValue(null);
 
-    Object.defineProperty(navigator, 'onLine', {value: true, configurable: true});
+    const initializer = TestBed.runInInjectionContext(() => initializeAuthFactory());
+    await TestBed.runInInjectionContext(() => initializer());
 
-    const factory = TestBed.runInInjectionContext(() => initializeAuthFactory());
-    const initPromise = TestBed.runInInjectionContext(() => factory());
+    expect(appSettingsService.getPublicSettingsQueryOptions).toHaveBeenCalledOnce();
+    expect(authInitService.markAsInitialized).toHaveBeenCalledOnce();
+    expect(warnSpy).toHaveBeenCalledOnce();
+  });
 
-    await initPromise;
+  it('initializes websocket auth when local auth is active and a token exists', async () => {
+    queryClient.fetchQuery.mockResolvedValue({...settingsBase, remoteAuthEnabled: false});
+    authService.getInternalAccessToken.mockReturnValue('access-token');
 
-    expect(markSpy).toHaveBeenCalled();
+    const initializer = TestBed.runInInjectionContext(() => initializeAuthFactory());
+    await TestBed.runInInjectionContext(() => initializer());
+
+    expect(authService.initializeWebSocketConnection).toHaveBeenCalledOnce();
+    expect(authInitService.markAsInitialized).toHaveBeenCalledOnce();
+  });
+
+  it('skips websocket initialization when local auth is active and no token exists', async () => {
+    queryClient.fetchQuery.mockResolvedValue({...settingsBase, remoteAuthEnabled: false});
+    authService.getInternalAccessToken.mockReturnValue(null);
+
+    const initializer = TestBed.runInInjectionContext(() => initializeAuthFactory());
+    await TestBed.runInInjectionContext(() => initializer());
+
+    expect(authService.initializeWebSocketConnection).not.toHaveBeenCalled();
+    expect(authInitService.markAsInitialized).toHaveBeenCalledOnce();
+  });
+
+  it('performs remote login when remote auth is enabled', async () => {
+    queryClient.fetchQuery.mockResolvedValue({...settingsBase, remoteAuthEnabled: true});
+    authService.remoteLogin.mockReturnValue(of({
+      accessToken: 'access',
+      refreshToken: 'refresh',
+      isDefaultPassword: 'false',
+    }));
+
+    const initializer = TestBed.runInInjectionContext(() => initializeAuthFactory());
+    await TestBed.runInInjectionContext(() => initializer());
+
+    expect(authService.remoteLogin).toHaveBeenCalledOnce();
+    expect(authInitService.markAsInitialized).toHaveBeenCalledOnce();
+  });
+
+  it('marks auth initialized even when remote login fails', async () => {
+    const error = new Error('remote login failed');
+    queryClient.fetchQuery.mockResolvedValue({...settingsBase, remoteAuthEnabled: true});
+    authService.remoteLogin.mockReturnValue(throwError(() => error));
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    const initializer = TestBed.runInInjectionContext(() => initializeAuthFactory());
+    await TestBed.runInInjectionContext(() => initializer());
+
+    expect(authService.remoteLogin).toHaveBeenCalledOnce();
+    expect(authInitService.markAsInitialized).toHaveBeenCalledOnce();
+    expect(errorSpy).toHaveBeenCalledWith('[Remote Login] failed:', error);
   });
 });

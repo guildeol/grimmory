@@ -104,6 +104,20 @@ describe('OidcService', () => {
     expect(authUrl).toContain('https://issuer.example/discovered-authorize?');
   });
 
+  it('throws when the discovery document does not expose an authorization endpoint', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      json: async () => ({issuer: 'https://issuer.example'})
+    }));
+
+    await expect(service.buildAuthUrl(
+      'https://issuer.example/',
+      'client-id',
+      'challenge',
+      'state-token',
+      'nonce-token'
+    )).rejects.toThrow('authorization_endpoint not found in discovery document');
+  });
+
   it('fetches the backend-generated OIDC state token', async () => {
     const statePromise = service.fetchState();
     const request = httpTestingController.expectOne(`${API_CONFIG.BASE_URL}/api/v1/auth/oidc/state`);
