@@ -127,7 +127,7 @@ describe('BookBrowserQueryParamsService', () => {
     expect(overrideResult.viewMode).toBe(VIEW_MODES.GRID);
     expect(overrideResult.filterMode).toBe('single');
     expect(overrideResult.sortCriteria).toEqual([
-      {label: 'Authors', field: 'authors', direction: SortDirection.DESCENDING}
+      {label: 'authors', field: 'authors', direction: SortDirection.DESCENDING}
     ]);
 
     const legacyResult = service.parseQueryParams(

@@ -67,6 +67,19 @@ describe('AuthInterceptorService', () => {
     expect((response as HttpResponse<boolean>).body).toBe(false);
   });
 
+  it('forwards api requests unchanged when no token is available', async () => {
+    authService.getInternalAccessToken.mockReturnValue(null);
+    const next = vi.fn((request: HttpRequest<unknown>) => of(new HttpResponse({status: 200, body: request.headers.has('Authorization')})));
+
+    const response = await firstValueFrom(interceptor(
+      new HttpRequest('GET', `${apiUrl}/books`),
+      next
+    ));
+
+    expect(next).toHaveBeenCalledOnce();
+    expect((response as HttpResponse<boolean>).body).toBe(false);
+  });
+
   it('retries a 401 request after a successful refresh', async () => {
     authService.getInternalAccessToken.mockReturnValue('expired-token');
     authService.internalRefreshToken.mockReturnValue(of({accessToken: 'fresh-token', refreshToken: 'refresh-token'}));
@@ -103,6 +116,19 @@ describe('AuthInterceptorService', () => {
     ))).rejects.toBeInstanceOf(HttpErrorResponse);
 
     expect(authService.logout).toHaveBeenCalledOnce();
+  });
+
+  it('rethrows non-401 errors without logging out', async () => {
+    authService.getInternalAccessToken.mockReturnValue('token-123');
+    const next = vi.fn(() => throwError(() => new HttpErrorResponse({status: 500})));
+
+    await expect(firstValueFrom(interceptor(
+      new HttpRequest('GET', `${apiUrl}/books`),
+      next
+    ))).rejects.toBeInstanceOf(HttpErrorResponse);
+
+    expect(authService.internalRefreshToken).not.toHaveBeenCalled();
+    expect(authService.logout).not.toHaveBeenCalled();
   });
 
   it('queues concurrent 401s behind a single refresh operation', async () => {

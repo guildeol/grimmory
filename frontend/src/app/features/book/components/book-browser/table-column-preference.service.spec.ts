@@ -63,7 +63,7 @@ describe('TableColumnPreferenceService', () => {
       field: 'readStatus',
       header: 't:book.columnPref.columns.readStatus'
     });
-    expect(service.visibleColumns.map(column => column.field).slice(0, 2)).toEqual(['readStatus', 'authors']);
+    expect(service.visibleColumns.map(column => column.field).slice(0, 2)).toEqual(['readStatus', 'fileName']);
   });
 
   it('falls back to defaults when no saved preferences exist', () => {

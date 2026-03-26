@@ -1,5 +1,5 @@
-import {TestBed} from '@angular/core/testing';
-import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
+import {Injector, runInInjectionContext} from '@angular/core';
+import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {of, throwError} from 'rxjs';
 import {QueryClient} from '@tanstack/angular-query-experimental';
 
@@ -42,9 +42,13 @@ describe('initializeAuthFactory', () => {
     authService.initializeWebSocketConnection.mockReset();
     queryClient.fetchQuery.mockReset();
     appSettingsService.getPublicSettingsQueryOptions.mockClear();
+  });
 
-    TestBed.resetTestingModule();
-    TestBed.configureTestingModule({
+  it('marks auth initialized when public settings are unavailable', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    queryClient.fetchQuery.mockResolvedValue(null);
+
+    const injector = Injector.create({
       providers: [
         {provide: AuthInitializationService, useValue: authInitService},
         {provide: AuthService, useValue: authService},
@@ -52,18 +56,8 @@ describe('initializeAuthFactory', () => {
         {provide: QueryClient, useValue: queryClient},
       ]
     });
-  });
 
-  afterEach(() => {
-    TestBed.resetTestingModule();
-  });
-
-  it('marks auth initialized when public settings are unavailable', async () => {
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-    queryClient.fetchQuery.mockResolvedValue(null);
-
-    const initializer = TestBed.runInInjectionContext(() => initializeAuthFactory());
-    await TestBed.runInInjectionContext(() => initializer());
+    await runInInjectionContext(injector, () => initializeAuthFactory()());
 
     expect(appSettingsService.getPublicSettingsQueryOptions).toHaveBeenCalledOnce();
     expect(authInitService.markAsInitialized).toHaveBeenCalledOnce();
@@ -74,8 +68,16 @@ describe('initializeAuthFactory', () => {
     queryClient.fetchQuery.mockResolvedValue({...settingsBase, remoteAuthEnabled: false});
     authService.getInternalAccessToken.mockReturnValue('access-token');
 
-    const initializer = TestBed.runInInjectionContext(() => initializeAuthFactory());
-    await TestBed.runInInjectionContext(() => initializer());
+    const injector = Injector.create({
+      providers: [
+        {provide: AuthInitializationService, useValue: authInitService},
+        {provide: AuthService, useValue: authService},
+        {provide: AppSettingsService, useValue: appSettingsService},
+        {provide: QueryClient, useValue: queryClient},
+      ]
+    });
+
+    await runInInjectionContext(injector, () => initializeAuthFactory()());
 
     expect(authService.initializeWebSocketConnection).toHaveBeenCalledOnce();
     expect(authInitService.markAsInitialized).toHaveBeenCalledOnce();
@@ -85,8 +87,16 @@ describe('initializeAuthFactory', () => {
     queryClient.fetchQuery.mockResolvedValue({...settingsBase, remoteAuthEnabled: false});
     authService.getInternalAccessToken.mockReturnValue(null);
 
-    const initializer = TestBed.runInInjectionContext(() => initializeAuthFactory());
-    await TestBed.runInInjectionContext(() => initializer());
+    const injector = Injector.create({
+      providers: [
+        {provide: AuthInitializationService, useValue: authInitService},
+        {provide: AuthService, useValue: authService},
+        {provide: AppSettingsService, useValue: appSettingsService},
+        {provide: QueryClient, useValue: queryClient},
+      ]
+    });
+
+    await runInInjectionContext(injector, () => initializeAuthFactory()());
 
     expect(authService.initializeWebSocketConnection).not.toHaveBeenCalled();
     expect(authInitService.markAsInitialized).toHaveBeenCalledOnce();
@@ -100,8 +110,16 @@ describe('initializeAuthFactory', () => {
       isDefaultPassword: 'false',
     }));
 
-    const initializer = TestBed.runInInjectionContext(() => initializeAuthFactory());
-    await TestBed.runInInjectionContext(() => initializer());
+    const injector = Injector.create({
+      providers: [
+        {provide: AuthInitializationService, useValue: authInitService},
+        {provide: AuthService, useValue: authService},
+        {provide: AppSettingsService, useValue: appSettingsService},
+        {provide: QueryClient, useValue: queryClient},
+      ]
+    });
+
+    await runInInjectionContext(injector, () => initializeAuthFactory()());
 
     expect(authService.remoteLogin).toHaveBeenCalledOnce();
     expect(authInitService.markAsInitialized).toHaveBeenCalledOnce();
@@ -113,8 +131,16 @@ describe('initializeAuthFactory', () => {
     authService.remoteLogin.mockReturnValue(throwError(() => error));
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
-    const initializer = TestBed.runInInjectionContext(() => initializeAuthFactory());
-    await TestBed.runInInjectionContext(() => initializer());
+    const injector = Injector.create({
+      providers: [
+        {provide: AuthInitializationService, useValue: authInitService},
+        {provide: AuthService, useValue: authService},
+        {provide: AppSettingsService, useValue: appSettingsService},
+        {provide: QueryClient, useValue: queryClient},
+      ]
+    });
+
+    await runInInjectionContext(injector, () => initializeAuthFactory()());
 
     expect(authService.remoteLogin).toHaveBeenCalledOnce();
     expect(authInitService.markAsInitialized).toHaveBeenCalledOnce();

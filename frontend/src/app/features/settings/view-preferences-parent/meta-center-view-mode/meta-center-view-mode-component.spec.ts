@@ -1,5 +1,6 @@
 import {signal} from '@angular/core';
 import {TestBed} from '@angular/core/testing';
+import {of} from 'rxjs';
 import {describe, expect, it, vi} from 'vitest';
 
 import {MetaCenterViewModeComponent} from './meta-center-view-mode-component';
@@ -48,15 +49,20 @@ describe('MetaCenterViewModeComponent', () => {
       providers: [
         {provide: UserService, useValue: {currentUser, getCurrentUser: vi.fn(() => currentUser()), updateUserSetting}},
         {provide: MessageService, useValue: {add: messageAdd}},
-        {provide: TranslocoService, useValue: {translate}},
+        {provide: TranslocoService, useValue: {
+          translate,
+          config: {reRenderOnLangChange: false},
+          langChanges$: of('en'),
+          _loadDependencies: vi.fn(() => of([])),
+        }},
       ]
     });
 
-    const fixture = TestBed.createComponent(MetaCenterViewModeComponent);
-    const component = fixture.componentInstance;
-
     currentUser.set(createUser());
+
+    const fixture = TestBed.createComponent(MetaCenterViewModeComponent);
     fixture.detectChanges();
+    const component = fixture.componentInstance;
 
     expect(component.viewMode).toBe('dialog');
     expect(component.seriesViewMode).toBe(true);
@@ -89,7 +95,12 @@ describe('MetaCenterViewModeComponent', () => {
       providers: [
         {provide: UserService, useValue: {currentUser, getCurrentUser: vi.fn(() => null), updateUserSetting}},
         {provide: MessageService, useValue: {add: vi.fn()}},
-        {provide: TranslocoService, useValue: {translate: vi.fn()}},
+        {provide: TranslocoService, useValue: {
+          translate: vi.fn(),
+          config: {reRenderOnLangChange: false},
+          langChanges$: of('en'),
+          _loadDependencies: vi.fn(() => of([])),
+        }},
       ]
     });
 
