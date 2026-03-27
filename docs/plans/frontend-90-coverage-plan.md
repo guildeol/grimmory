@@ -162,10 +162,17 @@ Do not launch workers if any of the following are true:
   - `/Users/james/Projects/grimmory/grimmory/.worktrees/f90-shared`
 - `.worktrees/` ignore rule: present in `.gitignore`
 - Historical pre-existing repo noise to record: `booklore-ui-migration-prompt.md`
-- Notification state: paused after false-positive human-needed alerts; resume only through the single local loop under `local-scripts/`
-- Latest validated coverage checkpoint from the surviving lane:
-  - global: statements `20.6%`, branches `15.76%`, functions `17.38%`, lines `37.12%`
-  - `core`: statements `90.83%`, branches `93.04%`, functions `76.77%`, lines `100%`
+- Notification state: paused pending the single local loop restart; the loop uses `/tmp/f90-status-loop.lock` and `local-scripts/.f90-status-loop.pid`
+- Root integration state:
+  - HEAD `6c78b1de`
+  - ahead of `origin/chore/expand-frontend-tests` by 4 commits
+  - integrated buckets: `core/auth/routes`, `bookdrop`, `readers(selection-service only)`
+- Current combined root coverage checkpoint:
+  - global: statements `21.62%`, branches `16.57%`, functions `18.31%`, lines `37.45%`
+- Restart lanes cleaned and recreated for restart:
+  - `metadata + settings + stats`
+  - `readers`
+  - `shared`
 
 ### Incident Log
 
@@ -173,10 +180,10 @@ Do not launch workers if any of the following are true:
 - The root checkout remained normal throughout the incident and was not modified outside standard repo-local git operations.
 - Malformed `.worktrees/` admin copies were removed safely.
 - The lane worktrees were recreated successfully with standard `git worktree add` flows under `/Users/james/Projects/grimmory/grimmory/.worktrees/`.
-- The first notifier path generated false-positive "return to machine" alerts; notifications are now paused until they are restarted through the single local status loop.
-- The book lane used direct `yarn install`, which violates the required `just` command surface and makes the batch non-integratable.
-- The metadata lane modified `metadata-viewer.component.ts`, which violates the no-runtime-change rule for this coverage push.
-- The readers and shared lanes introduced install churn (`node_modules/` or `yarn.lock`) instead of staying within narrow test-only ownership.
+- The first notifier path generated false-positive "return to machine" alerts; notifications are paused until the single local loop is restarted.
+- The shared lane polluted the root checkout with untracked shared specs, so that batch was discarded.
+- The broken `metadata`, `readers`, and `shared` lane worktrees were cleaned and recreated from the current root HEAD for restart.
+- The preserved `core/auth` worktree edits remain available for later integration.
 
 ### Stop-All Review
 
@@ -184,47 +191,34 @@ Do not launch workers if any of the following are true:
 - Second incident: shared lane edits landed in the root checkout instead of the shared worktree, which polluted the root with untracked shared specs.
 - Decision:
   - discard the shared batch
-  - preserve the core/auth worktree edits for integration after fresh validation
-  - discard the book batch until it is rerun without direct `yarn`
-  - discard the metadata batch because it changed runtime code
-  - discard the readers batch because it introduced install churn instead of a clean test bucket
-  - keep the remaining worktrees only as quarantined scratch state until they are either cleaned or recreated
+  - preserve the core/auth worktree edits for later integration
+  - keep the broken metadata/readers/shared worktrees cleaned and recreated for restart
   - restart later only with stricter worktree-path instructions, tighter drift checks, and the notifier still paused unless the local loop is explicitly started
 
 ## Current Integration Checkpoint
 
-- Accepted candidate bucket: `core/auth/routes`
-- Changed files:
-  - `frontend/src/app/app.routes.spec.ts`
-  - `frontend/src/app/core/custom-reuse-strategy.spec.ts`
-  - `frontend/src/app/core/security/auth-interceptor.service.spec.ts`
-  - `frontend/src/app/core/security/secure-src.directive.spec.ts`
-  - `frontend/src/app/core/services/loading.service.spec.ts`
-  - `frontend/src/app/core/security/oauth2-management/authentication-settings.component.spec.ts`
-- Validation rerun in `/Users/james/Projects/grimmory/grimmory/.worktrees/f90-core-auth-routes`:
-  - `just ui typecheck` passed
-  - `just ui lint` passed
-  - `just ui test` passed
-  - `just ui coverage` passed
-  - `just ui coverage-summary` passed
-- Residual non-blocking noise:
-  - existing Angular optional-chain warnings in `app.topbar.component.html`
-  - existing Vitest stderr from intentional error-path assertions
-- Proposed Conventional Commit subject: `test(core-auth-routes): add branch coverage for auth settings and route helpers`
-- Proposed grouped commit body:
-  - Core auth settings:
-    - cover provider persistence, group sync, force-only handling, and mapping dialog flows
-    - cover delete-group-mapping success and failure paths
-  - Core utilities:
-    - cover route reuse null-handle and missing scroll-position branches
-    - cover secure image fallback and object URL cleanup
-    - cover loading overlay custom-message and multi-loader cursor behavior
-  - Validation:
-    - `just ui typecheck`
-    - `just ui lint`
-    - `just ui test`
-    - `just ui coverage`
-    - `just ui coverage-summary`
+- Root HEAD: `6c78b1de`
+- Root branch status: ahead of `origin/chore/expand-frontend-tests` by 4 commits
+- Integrated and validated buckets so far:
+  - `core/auth/routes`
+  - `bookdrop`
+  - `readers(selection-service only)`
+- Current combined root coverage checkpoint:
+  - statements `21.62%`
+  - branches `16.57%`
+  - functions `18.31%`
+  - lines `37.45%`
+- Recreated restart lanes:
+  - `metadata + settings + stats`
+  - `readers`
+  - `shared`
+- Notification state:
+  - single local loop is the only allowed status/notification driver
+  - lock file: `/tmp/f90-status-loop.lock`
+  - pid file: `local-scripts/.f90-status-loop.pid`
+  - notifications remain paused until the loop is deliberately restarted
+- Next immediate action:
+  - restart exactly one clean high-yield lane, starting with `metadata + settings + stats` if it can stay test-only
 
 ## Lane Ownership And First Targets
 
@@ -464,11 +458,11 @@ The Git/integration worker owns these updates. The controller decides the conten
 
 ## Next Immediate Actions
 
-1. Commit the durable plan update as the controller checkpoint.
-2. Integrate the validated `core/auth/routes` bucket and rerun `just ui typecheck`, `just ui lint`, and `just ui test` in the root checkout.
-3. Re-run `just ui coverage` and `just ui coverage-summary` after the first integration so the root checkout becomes the source of truth for the improved totals.
-4. Clean or recreate the rejected worktrees before any lane restarts.
-5. Keep notifications paused unless the single local loop is deliberately started with tighter incident-only thresholds.
+1. Restart exactly one clean high-yield lane from the recreated worktrees, beginning with `metadata + settings + stats` only if it can stay test-only.
+2. Keep the notifier paused until the single local loop is deliberately restarted with tighter incident-only thresholds.
+3. Re-rank the remaining cold lanes from the current coverage totals, still prioritizing branch deficit first.
+4. Preserve the clean worktrees as the new controller baseline and keep the discarded shared batch out of rotation.
+5. Commit the durable plan update only if the controller wants a checkpoint before lane restart; otherwise keep the current root checkpoint uncommitted.
 
 ## Assumptions
 
