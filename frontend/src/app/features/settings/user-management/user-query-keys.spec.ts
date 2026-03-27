@@ -1,8 +1,9 @@
 import {describe, expect, it} from 'vitest';
 
-// TODO(frontend-coverage): Replace this stub with real coverage for frontend/src/app/features/settings/user-management/user-query-keys.ts.
-describe.skip("user-query-keys TODO stub", () => {
-  it('TODO: add real coverage', () => {
-    expect(true).toBe(true);
+import {CURRENT_USER_QUERY_KEY} from './user-query-keys';
+
+describe('user-query-keys', () => {
+  it('uses a stable cache key for the current user record', () => {
+    expect(CURRENT_USER_QUERY_KEY).toEqual(['currentUser']);
   });
 });

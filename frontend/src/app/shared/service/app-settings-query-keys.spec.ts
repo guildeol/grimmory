@@ -1,8 +1,10 @@
 import {describe, expect, it} from 'vitest';
 
-// TODO(frontend-coverage): Replace this stub with real coverage for frontend/src/app/shared/service/app-settings-query-keys.ts.
-describe.skip("app-settings-query-keys TODO stub", () => {
-  it('TODO: add real coverage', () => {
-    expect(true).toBe(true);
+import {APP_SETTINGS_QUERY_KEY, PUBLIC_SETTINGS_QUERY_KEY} from './app-settings-query-keys';
+
+describe('app-settings-query-keys', () => {
+  it('uses stable cache keys for private and public settings', () => {
+    expect(APP_SETTINGS_QUERY_KEY).toEqual(['appSettings']);
+    expect(PUBLIC_SETTINGS_QUERY_KEY).toEqual(['publicSettings']);
   });
 });
