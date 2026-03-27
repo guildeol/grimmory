@@ -1,8 +1,40 @@
-import {describe, expect, it} from 'vitest';
+import {TestBed} from '@angular/core/testing';
+import {firstValueFrom, of} from 'rxjs';
+import {beforeEach, describe, expect, it, vi} from 'vitest';
 
-// TODO(frontend-coverage): Replace this stub with real coverage for frontend/src/app/shared/service/icon-picker.service.ts.
-describe.skip("icon-picker.service TODO stub", () => {
-  it('TODO: add real coverage', () => {
-    expect(true).toBe(true);
+import {DialogLauncherService} from '../services/dialog-launcher.service';
+import {IconPickerService} from './icon-picker.service';
+
+describe('IconPickerService', () => {
+  const dialogLauncherService = {
+    openIconPickerDialog: vi.fn(),
+  };
+
+  let service: IconPickerService;
+
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    dialogLauncherService.openIconPickerDialog.mockReset();
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        IconPickerService,
+        {provide: DialogLauncherService, useValue: dialogLauncherService},
+      ]
+    });
+
+    service = TestBed.inject(IconPickerService);
+  });
+
+  it('returns the icon selected by the dialog', async () => {
+    dialogLauncherService.openIconPickerDialog.mockReturnValue({
+      onClose: of({type: 'PRIME_NG', value: 'pi pi-book'}),
+    });
+
+    await expect(firstValueFrom(service.open())).resolves.toEqual({
+      type: 'PRIME_NG',
+      value: 'pi pi-book',
+    });
   });
 });
