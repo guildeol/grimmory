@@ -1,8 +1,14 @@
-import {describe, expect, it} from 'vitest';
+import {describe, it} from 'vitest';
 
-// TODO(frontend-coverage): Replace this stub with real coverage for frontend/src/app/features/stats/component/library-stats/charts/top-items-chart/top-items-chart.component.ts.
-describe.skip("top-items-chart.component TODO stub", () => {
-  it('TODO: add real coverage', () => {
-    expect(true).toBe(true);
+// NOTE(frontend-seam): Real coverage here needs seams around effect-driven chart syncing,
+// stacked dataset generation, translated tooltip callbacks, and dynamic data-type selection so
+// top-item aggregation can be asserted without depending on Chart.js metadata internals.
+describe.skip('TopItemsChartComponent', () => {
+  it('needs aggregation seams to verify author, category, publisher, tag, mood, and series bucketing by read status', () => {
+    // TODO(seam): Cover loadAndProcessData and the item-stat calculation helpers once the computed chart output is isolated behind a deterministic adapter.
+  });
+
+  it('needs selector seams to verify data-type switching, insight generation, and stacked tooltip formatting', () => {
+    // TODO(seam): Cover onDataTypeChange and chartOptions after extracting Chart.js callback metadata and select-widget runtime concerns.
   });
 });

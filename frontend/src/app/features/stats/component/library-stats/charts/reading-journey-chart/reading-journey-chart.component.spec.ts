@@ -1,8 +1,14 @@
-import {describe, expect, it} from 'vitest';
+import {describe, it} from 'vitest';
 
-// TODO(frontend-coverage): Replace this stub with real coverage for frontend/src/app/features/stats/component/library-stats/charts/reading-journey-chart/reading-journey-chart.component.ts.
-describe.skip("reading-journey-chart.component TODO stub", () => {
-  it('TODO: add real coverage', () => {
-    expect(true).toBe(true);
+// NOTE(frontend-seam): Real coverage here needs seams around monthly acquisition/completion
+// aggregation, cumulative line-dataset generation, and translated tooltip callbacks so reading
+// journey analysis can be asserted without depending on chart metadata internals.
+describe.skip('ReadingJourneyChartComponent', () => {
+  it('needs aggregation seams to verify monthly added and finished counts, date ranges, and journey insights', () => {
+    // TODO(seam): Cover calculateMonthlyData and calculateInsights once the computed chart output is isolated behind a deterministic adapter.
+  });
+
+  it('needs callback seams to verify cumulative dataset shaping and backlog tooltip formatting', () => {
+    // TODO(seam): Cover chartData and chartOptions after extracting Chart.js callback metadata from the component runtime.
   });
 });
