@@ -1,8 +1,16 @@
+import Aura from '@primeuix/themes/aura';
 import {describe, expect, it} from 'vitest';
 
-// TODO(frontend-coverage): Replace this stub with real coverage for frontend/src/app/shared/layout/component/theme-palette-extend.ts.
-describe.skip("theme-palette-extend TODO stub", () => {
-  it('TODO: add real coverage', () => {
-    expect(true).toBe(true);
+import ExtendedAura from './theme-palette-extend';
+
+describe('theme-palette-extend', () => {
+  it('extends Aura with the custom primitive palettes', () => {
+    const primitive = Aura.primitive as Record<string, Record<string, string>>;
+
+    expect(ExtendedAura).toBe(Aura);
+    expect(primitive).toBeTruthy();
+    expect(primitive['coralSunset']['500']).toBe('#ef7550');
+    expect(primitive['skyBlue']['700']).toBe('#2e88e6');
+    expect(primitive['dustyNeutral']['950']).toBe('#2f2821');
   });
 });
