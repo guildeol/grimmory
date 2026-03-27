@@ -152,7 +152,8 @@ Do not launch workers if any of the following are true:
 - Status: pre-flight completed, swarm narrowed after incident review
 - Branch: `chore/expand-frontend-tests`
 - Repo state: root currently carries the metadata-viewer integration checkpoint and this plan-doc refresh draft
-- Current HEAD: `d3f05207`
+- Current HEAD: `97019536`
+- Prior metadata checkpoint HEAD: `d3f05207`
 - Worktree list:
   - `/Users/james/Projects/grimmory/grimmory`
   - `/Users/james/Projects/grimmory/grimmory/.worktrees/f90-book-author-series-notebook`
@@ -164,11 +165,21 @@ Do not launch workers if any of the following are true:
 - Historical pre-existing repo noise to record: `booklore-ui-migration-prompt.md`
 - Notification state: paused pending the single local loop restart; the loop uses `/tmp/f90-status-loop.lock` and `local-scripts/.f90-status-loop.pid`
 - Root integration state:
-  - HEAD `d3f05207`
-  - ahead of `origin/chore/expand-frontend-tests` by 5 commits
-  - integrated buckets: `core/auth/routes`, `bookdrop`, `readers(selection-service only)`, `metadata-viewer`
+  - HEAD `97019536`
+  - ahead of `origin/chore/expand-frontend-tests` by 11 commits
+  - integrated buckets: `core/auth/routes`, `bookdrop`, `readers(selection-service only)`, `metadata-viewer`, `book-card`, `shared(url-helper)`, `author-browser`
 - Current combined root coverage checkpoint:
-  - global: statements `23.00%`, branches `17.94%`, functions `19.49%`, lines `38.37%`
+  - global: statements `24.75%`, branches `19.73%`, functions `20.24%`, lines `38.79%`
+- Recent root-side batch:
+  - `bedcc3b0` `test(readers): stabilize ebook event service spec`
+  - `9e20879e` `test(book): cover book card decision paths`
+  - `e4a37866` `test(shared): cover url helper routing fallbacks`
+- Current coverage-summary highlights:
+  - `features/metadata`: statements `42.87%`, branches `23.68%`, functions `34.48%`, lines `45.4%`
+  - `features/readers`: statements `33.5%`, branches `26.88%`, functions `31.74%`, lines `44.37%`
+  - `features/book`: statements `21.86%`, branches `19%`, functions `15.3%`, lines `51.63%`
+  - `shared`: statements `22.96%`, branches `13.28%`, functions `19.9%`, lines `54.75%`
+  - `features/author-browser`: statements `7.86%`, branches `2.96%`, functions `7.59%`, lines `8.58%`
 - Metadata batch acceptance:
   - accepted file: `frontend/src/app/features/metadata/component/book-metadata-center/metadata-viewer/metadata-viewer.component.spec.ts`
   - measured lane branch movement: `metadata + settings + stats` to `13.08%` branches (`464/3548`), `3084` uncovered
@@ -189,6 +200,7 @@ Do not launch workers if any of the following are true:
 - The broken `metadata`, `readers`, and `shared` lane worktrees were cleaned and recreated from the current root HEAD for restart.
 - The preserved `core/auth` worktree edits remain available for later integration.
 - The accepted metadata viewer batch was then integrated directly in the root checkout and recorded as the current integration checkpoint.
+- The root-side readers/book/shared batch was then committed in sequence from the root checkout and the plan checkpoint refreshed again afterward.
 
 ### Stop-All Review
 
@@ -202,13 +214,19 @@ Do not launch workers if any of the following are true:
 
 ## Current Integration Checkpoint
 
-- Root HEAD: `d3f05207`
-- Root branch status: ahead of `origin/chore/expand-frontend-tests` by 5 commits
+- Root HEAD: `97019536`
+- Root branch status: ahead of `origin/chore/expand-frontend-tests` by 11 commits
 - Integrated and validated buckets so far:
   - `core/auth/routes`
   - `bookdrop`
   - `readers(selection-service only)`
   - `metadata-viewer`
+- Recent root-side commits:
+  - `bedcc3b0` `test(readers): stabilize ebook event service spec`
+  - `9e20879e` `test(book): cover book card decision paths`
+  - `e4a37866` `test(shared): cover url helper routing fallbacks`
+- Root tip also includes:
+  - `97019536` `test(author-browser): cover author service control flow`
 - Accepted metadata batch checkpoint:
   - commit: `d3f05207` `test(metadata-viewer): cover metadata viewer branches`
   - changed file: `frontend/src/app/features/metadata/component/book-metadata-center/metadata-viewer/metadata-viewer.component.spec.ts`
@@ -218,10 +236,10 @@ Do not launch workers if any of the following are true:
   - `metadata-viewer.component.ts`: branches `38.28%` (`116/303`)
   - `metadata/settings/stats`: branches `13.08%` (`464/3548`), uncovered `3084`
 - Current combined root coverage checkpoint:
-  - statements `23.00%`
-  - branches `17.94%`
-  - functions `19.49%`
-  - lines `38.37%`
+  - statements `24.75%`
+  - branches `19.73%`
+  - functions `20.24%`
+  - lines `38.79%`
 - Recreated restart lanes:
   - `metadata + settings + stats`
   - `readers`
@@ -232,7 +250,7 @@ Do not launch workers if any of the following are true:
   - pid file: `local-scripts/.f90-status-loop.pid`
   - notifications remain paused until the loop is deliberately restarted
 - Next immediate action:
-  - continue the `metadata + settings + stats` lane from `metadata-searcher.component.ts` next if it can stay test-only; otherwise pivot to `book + author + series + notebook`
+  - restart the `book + author + series + notebook` lane on `author-browser` next, since coverage-summary still shows that bucket as the coldest branch surface; if that proves too broad, fall back to `metadata + settings + stats` starting at `metadata-searcher.component.ts`
 
 ## Lane Ownership And First Targets
 
@@ -472,7 +490,7 @@ The Git/integration worker owns these updates. The controller decides the conten
 
 ## Next Immediate Actions
 
-1. Continue the `metadata + settings + stats` lane from `metadata-searcher.component.ts` next if it can stay test-only; otherwise pivot to `book + author + series + notebook`.
+1. Restart the `book + author + series + notebook` lane on `author-browser` next, since coverage-summary still shows that bucket as the coldest branch surface; if that proves too broad, fall back to `metadata + settings + stats` starting at `metadata-searcher.component.ts`.
 2. Keep the notifier paused until the single local loop is deliberately restarted with tighter incident-only thresholds.
 3. Re-rank the remaining cold lanes from the current coverage totals, still prioritizing branch deficit first.
 4. Preserve the clean worktrees as the new controller baseline and keep the discarded shared batch out of rotation.
