@@ -151,8 +151,8 @@ Do not launch workers if any of the following are true:
 
 - Status: pre-flight completed, swarm narrowed after incident review
 - Branch: `chore/expand-frontend-tests`
-- Repo state: after cleanup, root checkout is expected to show only the plan-doc modification below
-- Current HEAD: `b652260a`
+- Repo state: root currently carries the metadata-viewer integration checkpoint and this plan-doc refresh draft
+- Current HEAD: `d3f05207`
 - Worktree list:
   - `/Users/james/Projects/grimmory/grimmory`
   - `/Users/james/Projects/grimmory/grimmory/.worktrees/f90-book-author-series-notebook`
@@ -164,12 +164,16 @@ Do not launch workers if any of the following are true:
 - Historical pre-existing repo noise to record: `booklore-ui-migration-prompt.md`
 - Notification state: paused pending the single local loop restart; the loop uses `/tmp/f90-status-loop.lock` and `local-scripts/.f90-status-loop.pid`
 - Root integration state:
-  - HEAD `6c78b1de`
-  - ahead of `origin/chore/expand-frontend-tests` by 4 commits
-  - integrated buckets: `core/auth/routes`, `bookdrop`, `readers(selection-service only)`
+  - HEAD `d3f05207`
+  - ahead of `origin/chore/expand-frontend-tests` by 5 commits
+  - integrated buckets: `core/auth/routes`, `bookdrop`, `readers(selection-service only)`, `metadata-viewer`
 - Current combined root coverage checkpoint:
-  - global: statements `21.62%`, branches `16.57%`, functions `18.31%`, lines `37.45%`
-- Restart lanes cleaned and recreated for restart:
+  - global: statements `23.00%`, branches `17.94%`, functions `19.49%`, lines `38.37%`
+- Metadata batch acceptance:
+  - accepted file: `frontend/src/app/features/metadata/component/book-metadata-center/metadata-viewer/metadata-viewer.component.spec.ts`
+  - measured lane branch movement: `metadata + settings + stats` to `13.08%` branches (`464/3548`), `3084` uncovered
+  - measured file branch movement: `metadata-viewer.component.ts` to `38.28%` branches (`116/303`)
+- Restart lanes available for the next wave:
   - `metadata + settings + stats`
   - `readers`
   - `shared`
@@ -184,6 +188,7 @@ Do not launch workers if any of the following are true:
 - The shared lane polluted the root checkout with untracked shared specs, so that batch was discarded.
 - The broken `metadata`, `readers`, and `shared` lane worktrees were cleaned and recreated from the current root HEAD for restart.
 - The preserved `core/auth` worktree edits remain available for later integration.
+- The accepted metadata viewer batch was then integrated directly in the root checkout and recorded as the current integration checkpoint.
 
 ### Stop-All Review
 
@@ -197,17 +202,26 @@ Do not launch workers if any of the following are true:
 
 ## Current Integration Checkpoint
 
-- Root HEAD: `6c78b1de`
-- Root branch status: ahead of `origin/chore/expand-frontend-tests` by 4 commits
+- Root HEAD: `d3f05207`
+- Root branch status: ahead of `origin/chore/expand-frontend-tests` by 5 commits
 - Integrated and validated buckets so far:
   - `core/auth/routes`
   - `bookdrop`
   - `readers(selection-service only)`
+  - `metadata-viewer`
+- Accepted metadata batch checkpoint:
+  - commit: `d3f05207` `test(metadata-viewer): cover metadata viewer branches`
+  - changed file: `frontend/src/app/features/metadata/component/book-metadata-center/metadata-viewer/metadata-viewer.component.spec.ts`
+  - validation already completed in root: focused spec, typecheck, lint, test, coverage, coverage-summary
+- Measured metadata movement:
+  - global: statements `23.00%`, branches `17.94%`, functions `19.49%`, lines `38.37%`
+  - `metadata-viewer.component.ts`: branches `38.28%` (`116/303`)
+  - `metadata/settings/stats`: branches `13.08%` (`464/3548`), uncovered `3084`
 - Current combined root coverage checkpoint:
-  - statements `21.62%`
-  - branches `16.57%`
-  - functions `18.31%`
-  - lines `37.45%`
+  - statements `23.00%`
+  - branches `17.94%`
+  - functions `19.49%`
+  - lines `38.37%`
 - Recreated restart lanes:
   - `metadata + settings + stats`
   - `readers`
@@ -218,7 +232,7 @@ Do not launch workers if any of the following are true:
   - pid file: `local-scripts/.f90-status-loop.pid`
   - notifications remain paused until the loop is deliberately restarted
 - Next immediate action:
-  - restart exactly one clean high-yield lane, starting with `metadata + settings + stats` if it can stay test-only
+  - continue the `metadata + settings + stats` lane from `metadata-searcher.component.ts` next if it can stay test-only; otherwise pivot to `book + author + series + notebook`
 
 ## Lane Ownership And First Targets
 
@@ -458,11 +472,11 @@ The Git/integration worker owns these updates. The controller decides the conten
 
 ## Next Immediate Actions
 
-1. Restart exactly one clean high-yield lane from the recreated worktrees, beginning with `metadata + settings + stats` only if it can stay test-only.
+1. Continue the `metadata + settings + stats` lane from `metadata-searcher.component.ts` next if it can stay test-only; otherwise pivot to `book + author + series + notebook`.
 2. Keep the notifier paused until the single local loop is deliberately restarted with tighter incident-only thresholds.
 3. Re-rank the remaining cold lanes from the current coverage totals, still prioritizing branch deficit first.
 4. Preserve the clean worktrees as the new controller baseline and keep the discarded shared batch out of rotation.
-5. Commit the durable plan update only if the controller wants a checkpoint before lane restart; otherwise keep the current root checkpoint uncommitted.
+5. Commit this durable plan checkpoint after the metadata batch integration so later sessions can resume from the updated root truth.
 
 ## Assumptions
 
