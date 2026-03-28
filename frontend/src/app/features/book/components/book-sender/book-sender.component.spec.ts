@@ -86,7 +86,7 @@ describe('BookSenderComponent', () => {
 
     dialogConfig.data = {book: createBook()};
 
-    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({

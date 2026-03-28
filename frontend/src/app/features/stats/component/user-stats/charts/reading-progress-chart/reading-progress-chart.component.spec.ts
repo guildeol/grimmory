@@ -52,9 +52,9 @@ describe('ReadingProgressChartComponent', () => {
   function getLegendGenerator(component: ReadingProgressChartComponent) {
     return component.chartOptions?.plugins?.legend?.labels?.generateLabels as
       | ((chart: {
-        data: {labels?: string[]; datasets?: Array<{data: number[]; backgroundColor: string[]}>};
+        data: {labels?: string[]; datasets?: {data: number[]; backgroundColor: string[]}[]};
         getDataVisibility?: (index: number) => boolean;
-      }) => Array<{
+      }) => {
         text: string;
         fillStyle: string;
         strokeStyle: string;
@@ -62,14 +62,14 @@ describe('ReadingProgressChartComponent', () => {
         hidden: boolean;
         index: number;
         fontColor: string;
-      }>)
+      }[])
       | undefined;
   }
 
   function getTooltipCallbacks(component: ReadingProgressChartComponent) {
     return component.chartOptions?.plugins?.tooltip?.callbacks as
       | {
-        title?: (context: Array<{label?: string}>) => string;
+        title?: (context: {label?: string}[]) => string;
         label?: (context: {parsed: number; dataset: {data: number[]}; label: string}) => string;
       }
       | undefined;

@@ -11,10 +11,10 @@ import {BookService} from '../../service/book.service';
 import {BookFileAttacherComponent} from './book-file-attacher.component';
 import {AppSettingsService} from '../../../../shared/service/app-settings.service';
 
-type DialogData = {
+interface DialogData {
   sourceBook?: Book;
   sourceBooks?: Book[];
-};
+}
 
 type AppSettingsLike = {
   metadataPersistenceSettings?: {

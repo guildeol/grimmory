@@ -1,10 +1,11 @@
 import {signal} from '@angular/core';
 import {TestBed} from '@angular/core/testing';
+import type {AutoCompleteCompleteEvent} from 'primeng/autocomplete';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
-import {of, Subject, throwError} from 'rxjs';
+import {Observable, Subject, throwError} from 'rxjs';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 
-import {Book, BookMetadata, CreatePhysicalBookRequest} from '../../model/book.model';
+import {Book, BookMetadata} from '../../model/book.model';
 import {Library} from '../../model/library.model';
 import {BookMetadataService} from '../../service/book-metadata.service';
 import {BookService} from '../../service/book.service';
@@ -54,8 +55,8 @@ describe('AddPhysicalBookDialogComponent', () => {
       publishers: string[];
       series: string[];
     };
-    lookupResult$?: Subject<BookMetadata>;
-    createResult$?: Subject<Book>;
+    lookupResult$?: Observable<BookMetadata>;
+    createResult$?: Observable<Book>;
   } = {}) {
     const libraries = signal<Library[]>(options.librariesData ?? [
       createLibrary({id: 1, name: 'Main Library'}),
@@ -72,7 +73,7 @@ describe('AddPhysicalBookDialogComponent', () => {
     const lookupResult$ = options.lookupResult$ ?? new Subject<BookMetadata>();
     const createResult$ = options.createResult$ ?? new Subject<Book>();
     const lookupByIsbn = vi.fn(() => lookupResult$);
-    const createPhysicalBook = vi.fn((request: CreatePhysicalBookRequest) => createResult$);
+    const createPhysicalBook = vi.fn(() => createResult$);
     const dialogRef = {close: vi.fn()};
 
     TestBed.configureTestingModule({
@@ -143,8 +144,8 @@ describe('AddPhysicalBookDialogComponent', () => {
   it('filters authors and categories with case-insensitive substring matches', () => {
     const {component} = createHarness();
 
-    component.filterAuthors({query: 'taV'} as {query: string});
-    component.filterCategories({query: 'fic'} as {query: string});
+    component.filterAuthors({query: 'taV', originalEvent: new Event('input')} as AutoCompleteCompleteEvent);
+    component.filterCategories({query: 'fic', originalEvent: new Event('input')} as AutoCompleteCompleteEvent);
 
     expect(component.filteredAuthors).toEqual(['Octavia Butler']);
     expect(component.filteredCategories).toEqual(['Science Fiction']);
