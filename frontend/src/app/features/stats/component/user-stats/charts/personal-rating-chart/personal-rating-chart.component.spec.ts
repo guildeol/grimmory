@@ -83,7 +83,7 @@ describe('PersonalRatingChartComponent', () => {
     const component = createComponent();
     const callbacks = component.chartOptions?.plugins?.tooltip?.callbacks as
       | {
-        title?: (context: Array<{label?: string}>) => string;
+        title?: (context: {label?: string}[]) => string;
         label?: (context: {parsed: {y: number}}) => string;
       }
       | undefined;
