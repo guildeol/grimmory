@@ -75,6 +75,30 @@ describe('MetadataScoreChartComponent', () => {
       | undefined;
   }
 
+  it('returns empty computed stats while loading and when the selected library has no valid scores', () => {
+    books.set([
+      createBook(1, 1, 95),
+      createBook(2, 2, -1),
+      createBook(3, 2, null),
+    ]);
+    selectedLibrary.set(2);
+    isBooksLoading.set(true);
+
+    const component = createComponent();
+
+    expect(component.totalBooks()).toBe(0);
+    expect(component.averageScore()).toBe(0);
+    expect(component.scoreStats()).toEqual([]);
+    expect(component.chartData()).toEqual({labels: [], datasets: []});
+
+    isBooksLoading.set(false);
+
+    expect(component.totalBooks()).toBe(0);
+    expect(component.averageScore()).toBe(0);
+    expect(component.scoreStats()).toEqual([]);
+    expect(component.chartData()).toEqual({labels: [], datasets: []});
+  });
+
   it('buckets scores by translated range, filters to the selected library, and rounds the average score', () => {
     books.set([
       createBook(1, 1, 95),
