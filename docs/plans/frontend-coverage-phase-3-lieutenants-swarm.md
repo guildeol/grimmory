@@ -289,3 +289,95 @@ Current coverage totals:
 Current blocked seams:
 - browser-font-specific service testing
 - full reader runtime seams
+
+### 2026-03-28 replay window 1
+
+Accepted replay batches:
+- `2a3b82b6` `test(author-browser): cover author match component flows`
+- `152ee9a0` `test(book): cover book notes component flows`
+- `fadf732a` `test(author-browser): cover author editor component flows`
+- `bf3c5fc0` `test(book): cover shelf creator component flows`
+- `6fc5a42d` `test(book): cover book file service flows`
+- `32c1de1d` `test(stats): cover page count chart bucketing`
+
+Replay status:
+- deferred queue drained into root
+- root frontend gates passing after replay:
+  - `just ui typecheck`
+  - `just ui lint`
+  - `just ui test`
+  - `just ui coverage`
+  - `just ui coverage-summary`
+
+Current coverage totals:
+- statements `37.50%`
+- branches `27.59%`
+- functions `34.66%`
+- lines `51.74%`
+
+Highest-value bucket movement this cycle:
+- `features/author-browser` branches `5.19% -> 14.81%`
+- `features/book` branches `27.62% -> 29.68%`
+- `features/stats` branches `8.40% -> 9.44%`
+
+Current queued accumulation batches:
+- `covswarm-author3`
+  - file: `frontend/src/app/features/author-browser/components/author-card/author-card.component.spec.ts`
+  - targeted validation: `env YARN_ENABLE_GLOBAL_CACHE=0 YARN_CACHE_FOLDER=../.yarn/cache corepack yarn vitest run src/app/features/author-browser/components/author-card/author-card.component.spec.ts`
+  - result: `1` file passed, `8` tests passed
+  - proposed subject: `test(author-browser): cover author card component flows`
+- `covswarm-bookcomp3`
+  - file: `frontend/src/app/features/book/components/shelf-assigner/shelf-assigner.component.spec.ts`
+  - targeted validation: `env YARN_ENABLE_GLOBAL_CACHE=0 YARN_CACHE_FOLDER=../.yarn/cache corepack yarn vitest run src/app/features/book/components/shelf-assigner/shelf-assigner.component.spec.ts`
+  - result: `1` file passed, `7` tests passed
+  - proposed subject: `test(book): cover shelf assigner component flows`
+- `covswarm-author4`
+  - file: `frontend/src/app/features/author-browser/components/author-detail/author-detail.component.spec.ts`
+  - targeted validation: `env YARN_ENABLE_GLOBAL_CACHE=0 YARN_CACHE_FOLDER=../.yarn/cache corepack yarn vitest run src/app/features/author-browser/components/author-detail/author-detail.component.spec.ts`
+  - result: `1` file passed, `8` tests passed
+  - proposed subject: `test(author-browser): cover author detail component flows`
+- `covswarm-bookcomp4`
+  - file: `frontend/src/app/features/book/components/add-physical-book-dialog/add-physical-book-dialog.component.spec.ts`
+  - targeted validation: `env YARN_ENABLE_GLOBAL_CACHE=0 YARN_CACHE_FOLDER=../.yarn/cache corepack yarn --cwd frontend vitest run src/app/features/book/components/add-physical-book-dialog/add-physical-book-dialog.component.spec.ts --config vitest.config.ts`
+  - result: `1` file passed, `10` tests passed
+  - proposed subject: `test(book): cover add physical book dialog flows`
+- `covswarm-bookcomp5`
+  - file: `frontend/src/app/features/book/components/book-sender/book-sender.component.spec.ts`
+  - targeted validation: `env YARN_ENABLE_GLOBAL_CACHE=0 YARN_CACHE_FOLDER=../.yarn/cache corepack yarn ng test --watch=false --include src/app/features/book/components/book-sender/book-sender.component.spec.ts`
+  - result: `1` file passed, `6` tests passed
+  - proposed subject: `test(book): cover book sender component flows`
+- `covswarm-stats2`
+  - file: `frontend/src/app/features/stats/component/library-stats/charts/language-chart/language-chart.component.spec.ts`
+  - targeted validation: `env YARN_ENABLE_GLOBAL_CACHE=0 YARN_CACHE_FOLDER=../.yarn/cache corepack yarn vitest run src/app/features/stats/component/library-stats/charts/language-chart/language-chart.component.spec.ts`
+  - result: `1` file passed, `4` tests passed
+  - proposed subject: `test(stats): cover language chart aggregation`
+- `covswarm-stats3`
+  - file: `frontend/src/app/features/stats/component/library-stats/charts/metadata-score-chart/metadata-score-chart.component.spec.ts`
+  - targeted validation: `env YARN_ENABLE_GLOBAL_CACHE=0 YARN_CACHE_FOLDER=../.yarn/cache corepack yarn vitest run src/app/features/stats/component/library-stats/charts/metadata-score-chart/metadata-score-chart.component.spec.ts --config vitest.config.ts`
+  - result: `1` file passed, `4` tests passed
+  - proposed subject: `test(stats): cover metadata score chart states`
+- `covswarm-bookcomp6`
+  - file: `frontend/src/app/features/book/components/book-reviews/book-reviews.component.spec.ts`
+  - targeted validation: `env YARN_ENABLE_GLOBAL_CACHE=0 YARN_CACHE_FOLDER=../.yarn/cache corepack yarn vitest run src/app/features/book/components/book-reviews/book-reviews.component.spec.ts --config vitest.config.ts`
+  - result: `1` file passed, `10` tests passed
+  - proposed subject: `test(book): cover book reviews component flows`
+- `covswarm-bookcomp7`
+  - file: `frontend/src/app/features/book/components/book-file-attacher/book-file-attacher.component.spec.ts`
+  - targeted validation: `yarn vitest run src/app/features/book/components/book-file-attacher/book-file-attacher.component.spec.ts`
+  - result: `1` file passed, `8` tests passed
+  - proposed subject: `test(book): cover book file attacher flows`
+- `covswarm-stats4`
+  - file: `frontend/src/app/features/stats/component/user-stats/charts/reading-progress-chart/reading-progress-chart.component.spec.ts`
+  - targeted validation: `env YARN_ENABLE_GLOBAL_CACHE=0 YARN_CACHE_FOLDER=../.yarn/cache corepack yarn vitest run src/app/features/stats/component/user-stats/charts/reading-progress-chart/reading-progress-chart.component.spec.ts`
+  - result: `1` file passed, `5` tests passed
+  - proposed subject: `test(stats): cover reading progress chart bucketing`
+
+Next accumulation lanes:
+- `features/stats/component/user-stats/charts/read-status-chart/read-status-chart.component.spec.ts`
+- `features/stats/component/library-stats/charts/publication-trend-chart/publication-trend-chart.component.spec.ts`
+- `features/book/components/duplicate-merger/duplicate-merger.component.spec.ts`
+
+Current blocked seams:
+- full `author-browser.component` shell remains high-risk and deferred
+- browser-font-specific service testing remains deferred
+- full reader runtime seams remain deferred
