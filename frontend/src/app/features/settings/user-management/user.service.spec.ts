@@ -7,6 +7,11 @@ import {createAuthServiceStub, createQueryClientHarness, flushSignalAndQueryEffe
 import {CURRENT_USER_QUERY_KEY} from './user-query-keys';
 import {type User, type UserSettings, UserService} from './user.service';
 
+type BuildUserOverrides = Omit<Partial<User>, 'permissions' | 'userSettings'> & {
+  permissions?: Partial<User['permissions']>;
+  userSettings?: Partial<UserSettings>;
+};
+
 function buildUserSettings(overrides: Partial<UserSettings> = {}): UserSettings {
   return {
     perBookSetting: {pdf: 'pdf', epub: 'epub', cbx: 'cbx'},
@@ -60,7 +65,7 @@ function buildUserSettings(overrides: Partial<UserSettings> = {}): UserSettings 
   } as UserSettings;
 }
 
-function buildUser(overrides: Partial<User> = {}): User {
+function buildUser(overrides: BuildUserOverrides = {}): User {
   return {
     id: 7,
     username: 'reader',
