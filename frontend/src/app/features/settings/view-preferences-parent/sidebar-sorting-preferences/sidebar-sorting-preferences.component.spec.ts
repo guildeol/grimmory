@@ -77,7 +77,7 @@ describe('SidebarSortingPreferencesComponent', () => {
     messageService = {add: vi.fn()};
 
     TestBed.configureTestingModule({
-      imports: [SidebarSortingPreferencesComponent, getTranslocoModule()],
+      imports: [SidebarSortingPreferencesComponent, getTranslocoModule({translocoConfig: {reRenderOnLangChange: false}})],
       providers: [
         {provide: UserService, useValue: {currentUser: signal(createUser()), updateUserSetting}},
         {provide: MessageService, useValue: messageService},
